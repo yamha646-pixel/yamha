@@ -159,12 +159,12 @@
     "type": "text"
   },
   "shell.nav.debt": {
-    "label": "업보 메뉴 이름",
-    "value": "업보",
+    "label": "보상 메뉴 이름",
+    "value": "보상",
     "type": "text"
   },
   "shell.nav.debtSub": {
-    "label": "업보 메뉴 영문 이름",
+    "label": "보상 메뉴 영문 이름",
     "value": "MEMORY",
     "type": "text"
   },
@@ -407,13 +407,13 @@
     "type": "text"
   },
   "home.rewardSubtitle": {
-    "label": "방셀 보관함 소개",
+    "label": "사진 보관함 소개",
     "value": "우리의 순간을 차곡차곡",
     "type": "text"
   },
   "home.rewardTitle": {
-    "label": "방셀 보관함 제목",
-    "value": "방셀 보관함",
+    "label": "사진 보관함 제목",
+    "value": "사진 보관함",
     "type": "text"
   },
   "home.bottomNote": {
@@ -467,7 +467,7 @@
     "type": "text"
   },
   "home.rewardHeart": {
-    "label": "방셀 버튼 하트",
+    "label": "사진 버튼 하트",
     "value": "♡",
     "type": "text"
   },
@@ -561,17 +561,17 @@
     "type": "text"
   },
   "heading.debt.kicker": {
-    "label": "업보 상단 영문 분류",
+    "label": "보상 상단 영문 분류",
     "value": "MEMORY",
     "type": "text"
   },
   "heading.debt.title": {
-    "label": "업보 페이지 제목",
+    "label": "보상 페이지 제목",
     "value": "잊지 않을 약속",
     "type": "text"
   },
   "heading.debt.description": {
-    "label": "업보 페이지 소개",
+    "label": "보상 페이지 소개",
     "value": "{fanName}과 함께한 약속을 하나씩 모아 두었어요.",
     "type": "text"
   },

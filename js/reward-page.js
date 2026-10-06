@@ -8,6 +8,17 @@
   const paths={envelope:'<rect x="3" y="6" width="26" height="20" rx="3"/><path d="m4 8 12 10L28 8M4 25l9-9m15 9-9-9"/>',gift:'<path d="M5 15h22v14H5ZM3 8h26v7H3Zm13 0v21M16 8C8 9 5 5 8 2s6 1 8 6Zm0 0c8 1 11-3 8-6s-6 3-8 6Z"/>',lock:'<rect x="7" y="13" width="18" height="15" rx="3"/><path d="M11 13V8a5 5 0 0 1 10 0v5m-5 6v4"/>',search:'<circle cx="13" cy="13" r="9"/><path d="m20 20 8 8"/>',info:'<circle cx="16" cy="16" r="13"/><path d="M16 14v9m0-14v1"/>',close:'<path d="m7 7 18 18M7 25 25 7"/>'};
   const icon=name=>'<svg data-y-art="'+(['lock','info'].includes(name)?'reward.art.':'shell.art.')+name+'" viewBox="0 0 32 32" aria-hidden="true">'+paths[name]+'</svg>';
   const imageUrl=value=>window.YamhaUI?.safeUrl(value,{image:true})||'';
+  const fileSize=value=>{const size=Number(value);return Number.isFinite(size)&&size>0?(size<1024?size+' B':size<1048576?(size/1024).toFixed(1)+' KiB':(size/1048576).toFixed(1)+' MiB'):'';};
+  const attachmentInfo=row=>{
+    const name=typeof row.private_asset_name==='string'?row.private_asset_name:'',size=fileSize(row.private_asset_size);
+    return name?'<p class="yr-file-info">'+esc(name)+(size?' · '+esc(size):'')+'</p>':'';
+  };
+  function imageAttachment(row){
+    const mime=String(row.private_asset_mime||'').toLowerCase();
+    if(mime)return /^image\/(png|jpeg|webp|gif)$/.test(mime);
+    return !/\.(zip|apk)$/i.test(String(row.private_asset_name||row.private_asset_path||''));
+  }
+  const photoActionLabel=(row,preview)=>preview||imageAttachment(row)?text('reward.photoOpen',{title:row.title}):esc(row.title)+' '+text('reward.download');
   function mount(container,options={}){
     if(typeof container==='string')container=document.querySelector(container);if(!container)return null;
     const auth=window.YamhaRewardAuth,preview=new URLSearchParams(location.search).get('preview')==='1';
@@ -37,8 +48,8 @@
     async function openFile(collection,row,trigger,displayImage){
       if(!auth)return notice('reward.authSetup');trigger.disabled=true;const original=trigger.innerHTML;trigger.textContent=t('reward.downloading');
       try{const url=await auth.download(collection,row.id);if(!alive)return;
-        if(displayImage)showDialog(t('reward.privatePhotoDialog'),'<img src="'+esc(url)+'" alt="'+esc(row.title)+'"><div class="yr-image-caption">'+esc(row.title)+'</div><a class="yr-detail-button" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" download>'+text('reward.download')+'</a>','yr-image-dialog',trigger);
-        else{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.download='';a.click();}
+        if(displayImage)showDialog(t('reward.privatePhotoDialog'),'<img src="'+esc(url)+'" alt="'+esc(row.title)+'"><div class="yr-image-caption">'+esc(row.title)+'</div>'+attachmentInfo(row)+'<a class="yr-detail-button" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" download="'+esc(row.private_asset_name||'')+'">'+text('reward.download')+'</a>','yr-image-dialog',trigger);
+        else{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.download=row.private_asset_name||'';a.click();}
       }catch(error){if(error.code!=='session_changed')notice(error.code==='file_not_ready'?'reward.filePending':'reward.downloadError');}
       finally{if(trigger.isConnected){trigger.disabled=false;trigger.innerHTML=original;}}
     }
@@ -52,15 +63,15 @@
         else if(!account.user)bottom=text('reward.loginRequired')+loginButton();
         else if(account.subscription?.status==='unavailable')bottom=text('reward.subscriptionUnavailable');
         else if(!eligible(r))bottom=text('reward.claimLocked');else if(!r.private_asset_path)bottom=text('reward.filePending');
-        else bottom='<button type="button" class="yr-detail-button" data-yr-download>'+text('reward.download')+'</button>';
+        else bottom=attachmentInfo(r)+'<button type="button" class="yr-detail-button" data-yr-download>'+text('reward.download')+'</button>';
         showDialog(t('reward.toFan'),(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'">':'')+'<h2>'+esc(r.title)+'</h2><div class="yr-dialog-facts"><span>'+text('reward.tierDetail',{tier:r.tier})+'</span><span>'+text('reward.monthDetail',{months:r.required_months})+'</span></div><p class="yr-dialog-description">'+esc(r.description||t('reward.detailEmpty'))+'</p><div class="yr-dialog-bottom">'+bottom+'</div>','',b);bindLogin(dialog);if(can)dialog.querySelector('[data-yr-download]').onclick=e=>openFile('rewards',r,e.currentTarget,false);
       });
     }
     function renderPhotos(){
       const needle=state.query.trim().toLocaleLowerCase('ko-KR').replace(/^#/,''),rows=photos().filter(r=>(state.tag==='all'||r.tags.includes(state.tag))&&(!needle||[r.title,...r.tags].join(' ').toLocaleLowerCase('ko-KR').includes(needle))),list=container.querySelector('[data-yr-list]');
       container.querySelector('[data-yr-count]').textContent=t(preview?'reward.photoCount':'reward.myPhotoCount',{count:rows.length});
-      list.innerHTML=rows.length?rows.map((r,i)=>'<article class="yr-photo-card"><button class="yr-photo-open" data-yr-photo="'+i+'" type="button" aria-label="'+text('reward.photoOpen',{title:r.title})+'">'+(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'" loading="lazy">':'<span>'+icon('envelope')+text(r.available?'reward.photoOpen':'reward.photoPending',{title:r.title})+'</span>')+'</button><h3>'+esc(r.title)+'</h3><p class="yr-photo-tags">'+r.tags.map(x=>'<span>#'+esc(x)+'</span>').join('')+'</p>'+(preview?'<span class="yr-sample-tag">'+text('reward.sampleBadge')+'</span>':'')+'</article>').join(''):'<p class="yr-empty-search">'+lines('reward.searchEmpty')+'</p>';cleanImages(list);
-      list.querySelectorAll('[data-yr-photo]').forEach(b=>b.onclick=()=>{const r=rows[Number(b.dataset.yrPhoto)];if(!preview){if(!r.available)return notice('reward.filePending');return openFile('photos',r,b,true);}showDialog(t('reward.photoDialog'),(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'">':'')+'<div class="yr-image-caption">'+esc(r.title)+'<span>'+text('reward.photoDisclaimer')+'</span></div>','yr-image-dialog',b);});
+      list.innerHTML=rows.length?rows.map((r,i)=>'<article class="yr-photo-card"><button class="yr-photo-open" data-yr-photo="'+i+'" type="button" aria-label="'+photoActionLabel(r,preview)+'">'+(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'" loading="lazy">':'<span>'+icon('envelope')+(r.available?photoActionLabel(r,preview):text('reward.photoPending',{title:r.title}))+'</span>')+'</button><h3>'+esc(r.title)+'</h3><p class="yr-photo-tags">'+r.tags.map(x=>'<span>#'+esc(x)+'</span>').join('')+'</p>'+attachmentInfo(r)+(preview?'<span class="yr-sample-tag">'+text('reward.sampleBadge')+'</span>':'')+'</article>').join(''):'<p class="yr-empty-search">'+lines('reward.searchEmpty')+'</p>';cleanImages(list);
+      list.querySelectorAll('[data-yr-photo]').forEach(b=>b.onclick=()=>{const r=rows[Number(b.dataset.yrPhoto)];if(!preview){if(!r.available)return notice('reward.filePending');return openFile('photos',r,b,imageAttachment(r));}showDialog(t('reward.photoDialog'),(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'">':'')+'<div class="yr-image-caption">'+esc(r.title)+'<span>'+text('reward.photoDisclaimer')+'</span></div>','yr-image-dialog',b);});
     }
     function renderPanel(){
       const panel=container.querySelector('[data-yr-panel]');if(!panel)return;

@@ -158,11 +158,6 @@
     "value": "{name}를 소개합니다",
     "type": "text"
   },
-  "profile.personalityLabel": {
-    "label": "소개 항목 · 성격",
-    "value": "성격",
-    "type": "text"
-  },
   "profile.catchphraseLabel": {
     "label": "소개 항목 · 말버릇",
     "value": "말버릇",
@@ -231,7 +226,7 @@
   },
   "profile.keywordsText": {
     "label": "방송 키워드 안내",
-    "value": "키워드 · {keywords}",
+    "value": "{keywords}",
     "type": "text"
   },
   "profile.broadcastScheduleLink": {
@@ -337,8 +332,8 @@
     "type": "text"
   },
   "news.category.goods": {
-    "label": "분류 이름 · 굿즈",
-    "value": "굿즈",
+    "label": "분류 이름 · GOODS",
+    "value": "GOODS",
     "type": "text"
   },
   "news.resultCount": {
@@ -474,7 +469,7 @@
     "type": "text"
   }
 });
-  C.register("업보", {
+  C.register("보상", {
   "debt.fanFallback": {
     "label": "팬 이름이 없을 때 호칭",
     "value": "팬",
@@ -501,13 +496,13 @@
     "type": "text"
   },
   "debt.updatedAt": {
-    "label": "업보 변경일 표시",
+    "label": "보상 변경일 표시",
     "value": "최근 변경 {date}",
     "type": "text"
   },
   "debt.detailHeading": {
-    "label": "업보 상세 제목",
-    "value": "{nickname}님의 업보",
+    "label": "보상 상세 제목",
+    "value": "{nickname}님의 보상",
     "type": "text"
   },
   "debt.unnamed": {
@@ -516,7 +511,7 @@
     "type": "text"
   },
   "debt.resultCount": {
-    "label": "업보 목록 개수",
+    "label": "보상 목록 개수",
     "value": "{people}명의 {fanName} · {count}건",
     "type": "text"
   },
@@ -531,12 +526,12 @@
     "type": "text"
   },
   "debt.readMore": {
-    "label": "업보 상세 링크",
+    "label": "보상 상세 링크",
     "value": "상세 보기",
     "type": "text"
   },
   "debt.emptyImage": {
-    "label": "업보 빈 화면 장식",
+    "label": "보상 빈 화면 장식",
     "value": "assets/stamp-clover.png",
     "type": "image"
   },
@@ -546,8 +541,8 @@
     "type": "text"
   },
   "debt.emptyTitle": {
-    "label": "업보 없음 제목",
-    "value": "아직 등록된 업보가 없어요",
+    "label": "보상 없음 제목",
+    "value": "아직 등록된 보상이 없어요",
     "type": "text"
   },
   "debt.searchEmptyBody": {
@@ -556,12 +551,12 @@
     "type": "text"
   },
   "debt.emptyBody": {
-    "label": "업보 없음 설명",
+    "label": "보상 없음 설명",
     "value": "{fanName}과의 약속이 생기면 이곳에서 확인할 수 있어요.",
     "type": "text"
   },
   "debt.searchPlaceholder": {
-    "label": "업보 검색 입력 안내",
+    "label": "보상 검색 입력 안내",
     "value": "{fanName} 닉네임 검색",
     "type": "text"
   }

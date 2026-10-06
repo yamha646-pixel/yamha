@@ -6,7 +6,8 @@ const BUCKET = 'yamha-private-rewards';
 const MAX_UPLOAD = 15 * 1024 * 1024;
 const ID = /^[a-f0-9]{32}$/i;
 const OPAQUE = /^[a-f0-9]{64}$/;
-const ASSET = /^private\/[a-f0-9-]{36}\.(png|jpg|webp|gif)$/;
+const ASSET = /^private\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(png|jpg|webp|gif|zip|apk)$/;
+const ASSET_MIME = {png:'image/png',jpg:'image/jpeg',webp:'image/webp',gif:'image/gif',zip:'application/zip',apk:'application/vnd.android.package-archive'};
 const encoder = new TextEncoder();
 class Failure extends Error { constructor(code, status = 503) { super(code); this.code = code; this.status = status; } }
 const hex = bytes => Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
@@ -19,6 +20,66 @@ function cookies(request) { return Object.fromEntries((request.headers.get('Cook
 function headers(extra) { return new Headers({ 'Cache-Control': 'no-store, private', 'Pragma': 'no-cache', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff', ...extra }); }
 function json(value, status = 200, extra) { return new Response(JSON.stringify(value), { status, headers: headers({ 'Content-Type': 'application/json; charset=utf-8', ...extra }) }); }
 function redirect(url, setCookies = []) { const h = headers({ Location: url }); setCookies.forEach(x => h.append('Set-Cookie', x)); return new Response(null, { status: 303, headers: h }); }
+function attachmentName(value, ext, fallback = 'download') {
+  let name = String(value || fallback).normalize('NFC').split(/[\\/]/).pop();
+  name = name.replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069<>:"|?*]/g,'').replace(/[. ]+$/g,'').replace(/^\.+/,'').trim();
+  if (/\.[a-z0-9]{1,12}$/i.test(name)) name = name.replace(/\.[a-z0-9]{1,12}$/i,'');
+  name = Array.from(name).slice(0,110).join('').replace(/[. ]+$/g,'') || 'download';
+  if (/^(con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\.|$)/i.test(name)) name = '_' + name;
+  return name + '.' + ext;
+}
+function attachmentInfo(data) {
+  const match = ASSET.exec(data.private_asset_path || '');
+  if (!match) return {};
+  const size = Number(data.private_asset_size);
+  return {
+    private_asset_name: attachmentName(data.private_asset_name || (data.title ? data.title + '.' + match[1] : ''), match[1]),
+    private_asset_size: Number.isSafeInteger(size) && size > 0 && size <= MAX_UPLOAD ? size : null,
+    private_asset_mime: ASSET_MIME[match[1]]
+  };
+}
+// Validate archive structure without extracting, evaluating or executing any entry.
+function archiveEntries(bytes) {
+  if (bytes.length < 22) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const first = view.getUint32(0,true);
+  if (first !== 0x04034b50 && first !== 0x06054b50) return null;
+  let end = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0,bytes.length - 65557); i--) {
+    if (view.getUint32(i,true) === 0x06054b50 && i + 22 + view.getUint16(i + 20,true) === bytes.length) { end = i; break; }
+  }
+  if (end < 0 || view.getUint16(end + 4,true) !== 0 || view.getUint16(end + 6,true) !== 0) return null;
+  const count = view.getUint16(end + 10,true), length = view.getUint32(end + 12,true), offset = view.getUint32(end + 16,true);
+  if (count === 65535 || view.getUint16(end + 8,true) !== count || offset + length !== end || (count === 0 && (offset !== 0 || length !== 0))) return null;
+  const names = []; let cursor = offset;
+  for (let n = 0; n < count; n++) {
+    if (cursor + 46 > end || view.getUint32(cursor,true) !== 0x02014b50) return null;
+    const nameLength = view.getUint16(cursor + 28,true), extraLength = view.getUint16(cursor + 30,true), commentLength = view.getUint16(cursor + 32,true);
+    const local = view.getUint32(cursor + 42,true), compressed = view.getUint32(cursor + 20,true), next = cursor + 46 + nameLength + extraLength + commentLength;
+    if (!nameLength || next > end || view.getUint16(cursor + 34,true) !== 0 || local + 30 > offset || view.getUint32(local,true) !== 0x04034b50) return null;
+    const localNameLength = view.getUint16(local + 26,true), localExtraLength = view.getUint16(local + 28,true);
+    if (localNameLength !== nameLength || local + 30 + localNameLength + localExtraLength + compressed > offset) return null;
+    const name = bytes.subarray(cursor + 46,cursor + 46 + nameLength);
+    if (!name.every((byte,i) => byte === bytes[local + 30 + i])) return null;
+    names.push(new TextDecoder().decode(name));cursor = next;
+  }
+  return cursor === end ? names : null;
+}
+function attachmentType(bytes, name) {
+  const raw = /\.([a-z0-9]+)$/i.exec(String(name || ''))?.[1]?.toLowerCase();
+  const ext = raw === 'jpeg' ? 'jpg' : raw;
+  if (!ASSET_MIME[ext]) throw new Failure('unsupported_file_type',400);
+  const magic = text => new TextDecoder().decode(bytes.subarray(0,text.length)) === text;
+  const matches = ext === 'png' ? [137,80,78,71,13,10,26,10].every((byte,i) => bytes[i] === byte)
+    : ext === 'jpg' ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255
+    : ext === 'gif' ? magic('GIF87a') || magic('GIF89a')
+    : ext === 'webp' ? magic('RIFF') && new TextDecoder().decode(bytes.subarray(8,12)) === 'WEBP' : false;
+  if (ext === 'zip' || ext === 'apk') {
+    const names = archiveEntries(bytes);
+    if (!names || (ext === 'apk' && !names.includes('AndroidManifest.xml'))) throw new Failure('invalid_archive',400);
+  } else if (!matches) throw new Failure('unsupported_file_type',400);
+  return {ext,mime:ASSET_MIME[ext]};
+}
 function config(env) {
   const values = ['SITE_ORIGIN', 'CHZZK_CLIENT_ID', 'CHZZK_CLIENT_SECRET', 'CHZZK_CHANNEL_ID', 'SUPABASE_URL', 'SUPABASE_PUBLIC_KEY', 'SUPABASE_SECRET_KEY', 'REWARD_TOKEN_KEY'];
   if (values.some(k => !env[k])) throw new Failure('setup_required');
@@ -187,7 +248,7 @@ async function photos(request, cfg) {
   if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new Failure('bad_request', 400);
   const rows = await db(cfg, 'yamha_records?collection=eq.photos&data->>recipient_channel_id=ilike.' + user.channel_id + '&select=id,data&order=data->>published_at.desc.nullslast,id.asc&limit=51&offset=' + offset);
   if (!Array.isArray(rows)) throw new Failure('storage_unavailable');
-  return json({ items: rows.slice(0,50).filter(r => r.data?.published !== false).map(r => ({ id:r.id, title:String(r.data.title || ''), tags:Array.isArray(r.data.tags)?r.data.tags.filter(x=>typeof x==='string'):[], published_at:r.data.published_at || '', available:ASSET.test(r.data.private_asset_path || '') })), nextOffset:rows.length > 50?offset+50:null });
+  return json({ items: rows.slice(0,50).filter(r => r.data?.published !== false).map(r => ({ id:r.id, title:String(r.data.title || ''), tags:Array.isArray(r.data.tags)?r.data.tags.filter(x=>typeof x==='string'):[], published_at:r.data.published_at || '', available:ASSET.test(r.data.private_asset_path || ''), ...attachmentInfo(r.data) })), nextOffset:rows.length > 50?offset+50:null });
 }
 async function download(request, cfg) {
   const user = await session(request, cfg);
@@ -209,8 +270,10 @@ async function download(request, cfg) {
   const out=await requestJson(cfg.db+'/storage/v1/object/sign/'+BUCKET+'/'+path.split('/').map(encodeURIComponent).join('/'),{method:'POST',headers:serviceHeaders(cfg),body:JSON.stringify({expiresIn:60})},'file_unavailable');
   const signed=out.signedURL || out.signedUrl;
   if (typeof signed!=='string' || !signed.startsWith('/object/sign/'+BUCKET+'/')) throw new Failure('file_unavailable');
+  const url = new URL(cfg.db + '/storage/v1' + signed);
+  url.searchParams.set('download',attachmentInfo(data).private_asset_name);
   if(input.collection==='rewards')await db(cfg,'yamha_chzzk_receipts?on_conflict=channel_id,reward_id','POST',{channel_id:user.channel_id,reward_id:input.id,title:String(data.title||''),tier:Number(data.tier),months:Number(data.required_months),received_at:now()},{Prefer:'resolution=ignore-duplicates'});
-  return json({url:cfg.db+'/storage/v1'+signed,expiresIn:60});
+  return json({url:url.href,expiresIn:60});
 }
 async function upload(request,cfg) {
   await admin(request,cfg);
@@ -218,16 +281,12 @@ async function upload(request,cfg) {
   if (length>MAX_UPLOAD+65536) throw new Failure('file_too_large',413);
   let form;try{form=await request.formData();}catch{throw new Failure('bad_request',400);}
   const file=form.get('file');
-  if (!file || typeof file.arrayBuffer!=='function' || !file.size || file.size>MAX_UPLOAD) throw new Failure('file_too_large',413);
-  const bytes=new Uint8Array(await file.arrayBuffer());let ext='',mime='';
-  if(bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47){ext='png';mime='image/png';}
-  else if(bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff){ext='jpg';mime='image/jpeg';}
-  else if(new TextDecoder().decode(bytes.slice(0,6)).match(/^GIF8[79]a$/)){ext='gif';mime='image/gif';}
-  else if(new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP'){ext='webp';mime='image/webp';}
-  if(!ext)throw new Failure('image_type_required',400);
+  if (!file || typeof file.arrayBuffer!=='function' || !file.size) throw new Failure('file_required',400);
+  if (file.size>MAX_UPLOAD) throw new Failure('file_too_large',413);
+  const bytes=new Uint8Array(await file.arrayBuffer()), {ext,mime}=attachmentType(bytes,file.name);
   const path='private/'+crypto.randomUUID()+'.'+ext;
   await requestJson(cfg.db+'/storage/v1/object/'+BUCKET+'/'+path,{method:'POST',headers:{...serviceHeaders(cfg),'Content-Type':mime,'x-upsert':'false'},body:bytes},'file_upload_failed');
-  return json({path});
+  return json({path,name:attachmentName(file.name,ext),size:file.size,mime});
 }
 export async function onRequest(context) {
   const request=context.request,path=new URL(request.url).pathname.replace(/^\/api\/reward\/?/,'').replace(/\/$/,'');

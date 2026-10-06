@@ -15,7 +15,13 @@
     service_unavailable:'연결 서버에 응답이 없어요. 잠시 후 다시 시도해 주세요.',
     wrong_origin:'현재 접속 주소와 연결 설정의 사이트 주소가 달라요. 등록된 사이트에서 다시 시도해 주세요.',
     csrf_rejected:'요청을 확인하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.',
-    upload_rejected:'이미지 파일을 확인해 주세요. PNG, JPG, WebP, GIF 형식을 사용할 수 있어요.',
+    upload_rejected:'첨부파일을 확인해 주세요. 이미지·ZIP·APK 파일을 업로드할 수 있어요.',
+    unsupported_file_type:'지원하지 않거나 확장자와 내용이 다른 파일이에요. PNG, JPG, WebP, GIF, ZIP, APK 파일을 선택해 주세요.',
+    invalid_archive:'압축파일을 확인하지 못했어요. 정상적인 ZIP 파일 또는 Android 설치용 APK 파일을 선택해 주세요.',
+    file_required:'업로드할 파일을 선택해 주세요. 빈 파일은 올릴 수 없어요.',
+    file_too_large:'15MiB 이하의 파일을 선택해 주세요.',
+    file_upload_failed:'파일을 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.',
+    image_type_required:'이미지·ZIP·APK 파일을 선택해 주세요. 이 파일이 지원 형식인데도 실패하면 최신 서버 배포를 확인해 주세요.',
     file_unavailable:'파일을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
     session_changed:'로그인 상태가 바뀌었어요. 다시 시도해 주세요.'
   };
@@ -64,6 +70,9 @@
     location.assign(url.href);
   }
   async function uploadPrivate(file,accessToken){
+    if(!file||!file.size)throw failure('file_required');
+    if(file.size>15*1024*1024)throw failure('file_too_large');
+    if(!/\.(png|jpe?g|webp|gif|zip|apk)$/i.test(file.name||''))throw failure('unsupported_file_type');
     const form=new FormData();form.append('file',file);
     return call('admin/upload',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
   }

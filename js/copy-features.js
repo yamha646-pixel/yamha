@@ -203,7 +203,7 @@
     "type": "text"
   }
 });
-  C.register("리워드·방셀",{
+  C.register("리워드·사진",{
   "reward.art.lock": {"label":"로그인 잠금 아이콘","value":"","type":"image","hint":"비워 두면 기본 아이콘을 사용합니다."},
   "reward.art.info": {"label":"리워드 안내 아이콘","value":"","type":"image","hint":"비워 두면 기본 아이콘을 사용합니다."},
   "reward.sparkSymbol": {"label":"빈 화면 별 장식","value":"✦","type":"text"},
@@ -234,7 +234,7 @@
     "type": "text"
   },
   "reward.defaultPhotoTitle": {
-    "label": "제목 없는 방셀",
+    "label": "제목 없는 사진",
     "value": "{name}의 순간",
     "type": "text"
   },
@@ -257,18 +257,18 @@
   "reward.filePending": {"label":"원본 준비 중 안내","value":"원본 파일을 준비하고 있어요.","type":"text"},
   "reward.loginRequired": {"label":"수령 전 로그인 안내","value":"로그인 후 수령 조건을 확인할 수 있어요.","type":"text"},
   "reward.claimLocked": {"label":"수령 조건 안내","value":"구독 티어와 개월 수 조건을 확인해 주세요.","type":"text"},
-  "reward.myPhotoCount": {"label":"내 방셀 개수","value":"나에게 온 방셀 {count}장","type":"text"},
-  "reward.myPhotosEmpty": {"label":"내 방셀 없음 제목","value":"아직 도착한 방셀이 없어요.","type":"text"},
-  "reward.myPhotosBody": {"label":"내 방셀 없음 설명","value":"나에게 보낸 방셀이 등록되면 이곳에서 확인할 수 있어요.","type":"text"},
-  "reward.myPhotosNote": {"label":"내 방셀 목록 안내","value":"나에게 도착한 방셀만 표시됩니다.","type":"text"},
-  "reward.photosLoading": {"label":"내 방셀 불러오기 안내","value":"방셀을 불러오고 있어요.","type":"text"},
-  "reward.photosError": {"label":"내 방셀 불러오기 실패 안내","value":"방셀을 불러오지 못했어요. 잠시 후 새로고침해 주세요.","type":"text"},
+  "reward.myPhotoCount": {"label":"내 사진 개수","value":"나에게 온 사진 {count}장","type":"text"},
+  "reward.myPhotosEmpty": {"label":"내 사진 없음 제목","value":"아직 도착한 사진이 없어요.","type":"text"},
+  "reward.myPhotosBody": {"label":"내 사진 없음 설명","value":"나에게 보낸 사진이 등록되면 이곳에서 확인할 수 있어요.","type":"text"},
+  "reward.myPhotosNote": {"label":"내 사진 목록 안내","value":"나에게 도착한 사진만 표시됩니다.","type":"text"},
+  "reward.photosLoading": {"label":"내 사진 불러오기 안내","value":"사진을 불러오고 있어요.","type":"text"},
+  "reward.photosError": {"label":"내 사진 불러오기 실패 안내","value":"사진을 불러오지 못했어요. 잠시 후 새로고침해 주세요.","type":"text"},
   "reward.receiptButton": {"label":"수령 이력 버튼","value":"리워드 수령 이력","type":"text"},
   "reward.receiptTitle": {"label":"수령 이력 제목","value":"내가 받은 리워드","type":"text"},
   "reward.receiptEmpty": {"label":"수령 이력 없음 안내","value":"아직 받은 리워드가 없어요.","type":"text"},
   "reward.receiptDate": {"label":"수령 날짜 표시","value":"{date} 수령","type":"text"},
   "reward.receiptError": {"label":"수령 이력 오류 안내","value":"수령 이력을 불러오지 못했어요.","type":"text"},
-  "reward.privatePhotoDialog": {"label":"개인 방셀 확대 제목","value":"나에게 온 방셀","type":"text"},
+  "reward.privatePhotoDialog": {"label":"개인 사진 확대 제목","value":"나에게 온 사진","type":"text"},
   "reward.count": {
     "label": "리워드 개수 표기",
     "value": "{count}개의 편지",
@@ -345,33 +345,33 @@
     "type": "text"
   },
   "reward.photoCount": {
-    "label": "방셀 미리보기 수",
+    "label": "사진 미리보기 수",
     "value": "미리보기 {count}장",
     "type": "text"
   },
   "reward.photoOpen": {
-    "label": "방셀 확대 접근성 이름",
+    "label": "사진 확대 접근성 이름",
     "value": "{title} 크게 보기",
     "type": "text"
   },
   "reward.photoPending": {
-    "label": "방셀 이미지 빈 화면",
+    "label": "사진 이미지 빈 화면",
     "value": "사진 준비 중",
     "type": "text"
   },
   "reward.searchEmpty": {
-    "label": "방셀 검색 결과 없음",
+    "label": "사진 검색 결과 없음",
     "value": "검색한 제목이나 태그의 사진이 없어요.\n다른 단어로 찾아보세요.",
     "type": "text",
     "multiline": true
   },
   "reward.photoDialog": {
-    "label": "방셀 확대 창 상단",
+    "label": "사진 확대 창 상단",
     "value": "PHOTO PREVIEW",
     "type": "text"
   },
   "reward.photoDisclaimer": {
-    "label": "방셀 확대 설명",
+    "label": "사진 확대 설명",
     "value": "화면 확인용 미리보기입니다. 실제 수령 내역이 아닙니다.",
     "type": "text"
   },
@@ -402,22 +402,22 @@
     "multiline": true
   },
   "reward.lockedTitle": {
-    "label": "개인 방셀 잠금 제목",
+    "label": "개인 사진 잠금 제목",
     "value": "{fanName}만의 편지함",
     "type": "text"
   },
   "reward.lockedBody": {
-    "label": "개인 방셀 잠금 설명",
-    "value": "나에게 도착한 방셀을 모아 보고, 제목과 태그로 소중한 순간을 찾을 수 있는 공간이에요.",
+    "label": "개인 사진 잠금 설명",
+    "value": "나에게 도착한 사진을 모아 보고, 제목과 태그로 소중한 순간을 찾을 수 있는 공간이에요.",
     "type": "text"
   },
   "reward.searchLabel": {
-    "label": "방셀 검색 접근성 이름",
+    "label": "사진 검색 접근성 이름",
     "value": "사진 제목 또는 태그 검색",
     "type": "text"
   },
   "reward.searchPlaceholder": {
-    "label": "방셀 검색 입력 안내",
+    "label": "사진 검색 입력 안내",
     "value": "제목이나 #태그로 찾아보기",
     "type": "text"
   },
@@ -427,8 +427,8 @@
     "type": "text"
   },
   "reward.previewPhotosNote": {
-    "label": "방셀 미리보기 하단 안내",
-    "value": "사진의 제목과 태그를 살펴보는 디자인 미리보기예요.\n실제 개인 방셀과 다운로드는 로그인 연결 후 제공됩니다.",
+    "label": "사진 미리보기 하단 안내",
+    "value": "사진의 제목과 태그를 살펴보는 디자인 미리보기예요.\n실제 개인 사진과 다운로드는 로그인 연결 후 제공됩니다.",
     "type": "text",
     "multiline": true
   },
@@ -481,7 +481,7 @@
   },
   "reward.tabsLabel": {
     "label": "리워드 탭 접근성 이름",
-    "value": "리워드와 방셀",
+    "value": "리워드와 사진",
     "type": "text"
   },
   "reward.tabRewards": {
@@ -490,8 +490,8 @@
     "type": "text"
   },
   "reward.tabPhotos": {
-    "label": "방셀 탭 이름",
-    "value": "방셀 보관함",
+    "label": "사진 탭 이름",
+    "value": "사진 보관함",
     "type": "text"
   }
 });
@@ -557,77 +557,77 @@
     "type": "image"
   },
   "rewardPreview.photo1.title": {
-    "label": "방셀 샘플 1 제목",
+    "label": "사진 샘플 1 제목",
     "value": "{fanName}에게, 브이!",
     "type": "text"
   },
   "rewardPreview.photo1.tags": {
-    "label": "방셀 샘플 1 태그",
+    "label": "사진 샘플 1 태그",
     "value": "도토리바구니, {name}",
     "type": "text"
   },
   "rewardPreview.photo1.image": {
-    "label": "방셀 샘플 1 사진",
+    "label": "사진 샘플 1 사진",
     "value": "assets/photo-01.png",
     "type": "image"
   },
   "rewardPreview.photo2.title": {
-    "label": "방셀 샘플 2 제목",
+    "label": "사진 샘플 2 제목",
     "value": "웃음 가득한 오후",
     "type": "text"
   },
   "rewardPreview.photo2.tags": {
-    "label": "방셀 샘플 2 태그",
+    "label": "사진 샘플 2 태그",
     "value": "도토리바구니, 여름",
     "type": "text"
   },
   "rewardPreview.photo2.image": {
-    "label": "방셀 샘플 2 사진",
+    "label": "사진 샘플 2 사진",
     "value": "assets/photo-02.png",
     "type": "image"
   },
   "rewardPreview.photo3.title": {
-    "label": "방셀 샘플 3 제목",
+    "label": "사진 샘플 3 제목",
     "value": "오늘도 안녕!",
     "type": "text"
   },
   "rewardPreview.photo3.tags": {
-    "label": "방셀 샘플 3 태그",
+    "label": "사진 샘플 3 태그",
     "value": "{name}, 여름",
     "type": "text"
   },
   "rewardPreview.photo3.image": {
-    "label": "방셀 샘플 3 사진",
+    "label": "사진 샘플 3 사진",
     "value": "assets/photo-03.png",
     "type": "image"
   },
   "rewardPreview.photo4.title": {
-    "label": "방셀 샘플 4 제목",
+    "label": "사진 샘플 4 제목",
     "value": "분홍빛으로 물든 순간",
     "type": "text"
   },
   "rewardPreview.photo4.tags": {
-    "label": "방셀 샘플 4 태그",
+    "label": "사진 샘플 4 태그",
     "value": "도토리바구니, {name}",
     "type": "text"
   },
   "rewardPreview.photo4.image": {
-    "label": "방셀 샘플 4 사진",
+    "label": "사진 샘플 4 사진",
     "value": "assets/photo-04.png",
     "type": "image"
   },
   "rewardPreview.photo5.title": {
-    "label": "방셀 샘플 5 제목",
+    "label": "사진 샘플 5 제목",
     "value": "햇살 좋은 날",
     "type": "text"
   },
   "rewardPreview.photo5.tags": {
-    "label": "방셀 샘플 5 태그",
+    "label": "사진 샘플 5 태그",
     "value": "여름, {name}",
     "type": "text"
   },
   "rewardPreview.photo5.image": {
-    "label": "방셀 샘플 5 사진",
+    "label": "사진 샘플 5 사진",
     "value": "assets/photo-05.png",
     "type": "image"
   }

@@ -135,6 +135,7 @@ body.admin-page .adm-root{max-width:none}
 .adm-subtabs .is-active{background:#ffdfeb;border-color:#d99bb2;color:#8d3c5c}
 .adm-page-collections{padding-top:22px;border-top:1px solid #ecd6dc}
 .adm-private-upload{margin-top:9px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.adm-attachment-info{margin:12px 0 0;padding:12px 14px;border:1px solid #dacdd4;border-radius:8px;background:#faf7f9;font-size:14px;line-height:1.8;color:#57434f;overflow-wrap:anywhere}
 @media(max-width:1000px){.adm-page-settings .adm-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.adm-page-settings .adm-field-wide{grid-column:span 2}}
 @media(max-width:600px){body.admin-page>.main{padding:20px 14px 45px}.adm-page-settings .adm-field-grid{grid-template-columns:1fr}.adm-page-settings .adm-field-wide{grid-column:auto}.adm-page-bar{align-items:flex-start;flex-direction:column}.adm-tabs{position:static}.adm-page-settings .adm-form-actions{bottom:5px}.adm-group-hint{margin-top:-10px}.adm-page-settings{margin-bottom:25px}}
 /* Editing cards follow the imported Dope/Hiruroong admin: destination notes,

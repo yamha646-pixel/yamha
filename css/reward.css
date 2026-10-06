@@ -12,3 +12,5 @@
 .yr-photo-open>span svg,.yr-photo-open>span img.y-art-image{width:48px;height:48px}
 [data-yr-auth]>.yr-detail-button{margin-top:7px}
 @media(max-width:850px){.yr-pass [data-yr-auth]{grid-column:1/-1;grid-row:4;margin-top:16px}.yr-pass [data-yr-auth] .yr-pass-foot{display:block}.yr-pass [data-yr-auth]>.yr-login{width:100%;max-width:none}.yr-pass [data-yr-auth]>.yr-detail-button{width:auto;margin:7px 5px 0 0}}
+.yr-file-info{margin:10px 0;font-size:12px;line-height:1.75;color:#786574;overflow-wrap:anywhere;word-break:break-word}
+.yr-photo-card>.yr-file-info{padding:0 12px 8px}

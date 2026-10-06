@@ -10,7 +10,6 @@ window.YAMHA_DATA = {
   genres: ["K-POP", "J-POP", "POP"],
   signatureSong: "eill - 피날레",
   sing: "가끔 함",
-  personality: "느엥",
   catchphrase: "잉, 우이없어, 이러네, 아니거등",
   englishName: "YAMHA",
   bio: "하늘다람쥐 편지배달부",

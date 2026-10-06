@@ -3,7 +3,7 @@
   'use strict';
   if (document.body.dataset.page !== 'admin') return;
   const collections = ['schedule', 'news', 'rewards', 'photos', 'debts', 'guides', 'timeline', 'songs'];
-  const tabNames = {common:'공통', home:'메인', profile:'프로필', schedule:'일정', news:'공지', store:'STORE', reward:'REWARD', debt:'업보', guide:'안내'};
+  const tabNames = {common:'공통', home:'메인', profile:'프로필', schedule:'일정', news:'공지', store:'STORE', reward:'REWARD', debt:'보상', guide:'안내'};
   const pageCollections = {profile:['timeline'],schedule:['schedule'],news:['news'],reward:['rewards','photos'],debt:['debts'],guide:['guides']};
   const pagePaths = {common:'index.html',home:'index.html',profile:'profile/index.html',schedule:'schedule/index.html',news:'news/index.html',store:'store/index.html',reward:'reward/index.html',debt:'debt/index.html',guide:'guide/index.html'};
   const pageHelp = {
@@ -11,21 +11,27 @@
     home:'메인에 보이는 소개와 사진을 바꿉니다. 사진 아래 문구와 장식은 아래의 세부 편집에서 바꿀 수 있습니다.',
     profile:'프로필의 정보, 소개, 취향을 바꿉니다. 이름·팬 이름·방송 시간은 메인에도 함께 반영됩니다.',
     schedule:'달력 날짜를 누르면 새 일정, 등록된 일정 막대를 누르면 수정 화면이 열립니다.',
-    news:'공지를 등록하거나 기존 글을 수정합니다. 공지·콘텐츠·이벤트·굿즈 분류를 선택할 수 있습니다.',
+    news:'공지를 등록하거나 기존 글을 수정합니다. 공지·콘텐츠·이벤트·GOODS 분류를 선택할 수 있습니다.',
     store:'스토어 버튼을 눌렀을 때 열릴 주소를 바꿉니다. 나중에 다른 스토어로 옮겨도 여기서 수정하면 됩니다.',
-    reward:'구독 리워드와 개인 방셀을 등록합니다. 리워드별로 구독 티어와 필요한 개월 수를 정할 수 있습니다.',
-    debt:'닉네임별 업보 이름, 남은 수량과 완료 상태를 관리합니다.',
+    reward:'구독 리워드와 개인 사진을 등록합니다. 리워드별로 구독 티어와 필요한 개월 수를 정할 수 있습니다.',
+    debt:'닉네임별 보상 이름, 남은 수량과 완료 상태를 관리합니다.',
     guide:'방송 채팅·팬카페·2차 창작 안내 3종의 본문과 사진을 수정합니다.'
   };
   // The source GROUPS cards state where a value appears before showing inputs.
   const collectionGroups = {
-    news:[['공지 내용','나오는 곳 — 공지 목록의 제목과, 글을 눌렀을 때 나오는 본문입니다.',['title','body','images']],['분류·공개 설정','굿즈를 선택하면 굿즈 탭에 표시됩니다. 공개를 끄면 방문자 목록에서 숨겨집니다.',['category','published_at','pinned','published']]],
-    rewards:[['리워드 내용','나오는 곳 — REWARD의 구독 리워드 목록과 상세 안내입니다.',['title','description']],['수령 조건','예: 3개월로 설정하면 해당 티어·개월 수 이상인 구독자가 원본을 받을 수 있습니다. 미리보기는 공개됩니다.',['tier','required_months']],['미리보기·원본','미리보기에는 공개해도 되는 사진을 넣고, 실제 제공할 사진은 비공개 원본으로 업로드하세요.',['preview_url','private_asset_path']],['공개·정렬','표시 순서는 작은 숫자가 먼저입니다. 공개를 끄면 리워드 목록에서 숨겨집니다.',['sort_order','published']]],
-    photos:[['방셀 정보','나오는 곳 — 받는 분이 로그인한 뒤 보는 방셀 보관함입니다. 제목과 태그로 찾을 수 있습니다.',['title','tags','published_at']],['받는 분·사진','받는 분의 치지직 채널 ID를 확인한 뒤 원본을 업로드합니다. 닉네임으로는 소유자를 지정할 수 없습니다.',['recipient_channel_id','preview_url','private_asset_path']]],
+    news:[['공지 내용','나오는 곳 — 공지 목록의 제목과, 글을 눌렀을 때 나오는 본문입니다.',['title','body','images']],['분류·공개 설정','GOODS를 선택하면 GOODS 탭에 표시됩니다. 공개를 끄면 방문자 목록에서 숨겨집니다.',['category','published_at','pinned','published']]],
+    rewards:[['리워드 내용','나오는 곳 — REWARD의 구독 리워드 목록과 상세 안내입니다.',['title','description']],['수령 조건','예: 3개월로 설정하면 해당 티어·개월 수 이상인 구독자가 원본을 받을 수 있습니다. 미리보기는 공개됩니다.',['tier','required_months']],['미리보기·원본','미리보기에는 공개해도 되는 사진을 넣고, 실제 제공할 이미지·ZIP·APK는 첨부파일로 업로드하세요.',['preview_url','private_asset_path','private_asset_name','private_asset_size','private_asset_mime']],['공개·정렬','표시 순서는 작은 숫자가 먼저입니다. 공개를 끄면 리워드 목록에서 숨겨집니다.',['sort_order','published']]],
+    photos:[['사진 정보','나오는 곳 — 받는 분이 로그인한 뒤 보는 사진 보관함입니다. 제목과 태그로 찾을 수 있습니다.',['title','tags','published_at']],['받는 분·첨부파일','받는 분의 치지직 채널 ID를 확인한 뒤 원본을 업로드합니다. 닉네임으로는 소유자를 지정할 수 없습니다.',['recipient_channel_id','preview_url','private_asset_path','private_asset_name','private_asset_size','private_asset_mime']]],
     guides:[['안내 종류·제목','나오는 곳 — 안내 페이지의 3개 버튼입니다. 기존 안내의 종류는 바꾸지 않고 제목과 본문을 수정합니다.',['id','title','sort_order']],['안내 본문·사진','본문의 ## 제목과 줄바꿈이 반영됩니다. 2차 창작 사진은 아래에 적힌 순서를 유지해 주세요.',['body','images']]],
     schedule:[['1부·기간','나오는 곳 — 메인과 일정 페이지의 달력입니다. 하루 일정은 종료 날짜를 비워 둡니다.',['date','end_date','title','time','type','color','highlight']],['2부·메모','2부가 없으면 2부 유형을 ‘2부 없음’으로 둡니다. 설명은 일정 상세에서 확인할 수 있습니다.',['title2','time2','type2','color2','description']]]
   };
   const colors = ['pink', 'green', 'lime', 'blue', 'yellow', 'orange', 'purple', 'red', 'gray', 'cream'];
+  const attachmentMetaFields=()=>[
+    {key:'private_asset_name',type:'hidden',label:'첨부파일 이름'},
+    {key:'private_asset_size',type:'hidden',number:true,label:'첨부파일 크기'},
+    {key:'private_asset_mime',type:'hidden',label:'첨부파일 형식'}
+  ];
+  const privateAssetPattern=/^private\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|gif|webp|zip|apk)$/;
   const configs = {
     schedule: {
       singular:'일정', description:'날짜를 눌러 등록하고, 일정 막대를 눌러 같은 일정을 수정해요. 기간은 마지막 날까지 포함됩니다.',
@@ -43,11 +49,11 @@
     news: {
       singular:'공지', description:'상단 고정과 공개 여부를 정하고, 이미지 주소를 여러 개 추가할 수 있어요.',
       defaults:() => ({category:'NOTICE', images:[], pinned:false, published:true, published_at:new Date().toISOString()}),
-      fields:[{key:'title',label:'공지 제목',required:true,wide:true}, {key:'category',label:'분류',type:'select',options:[['NOTICE','공지'],['CONTENTS','콘텐츠'],['EVENT','이벤트'],['GOODS','굿즈']]},
+      fields:[{key:'title',label:'공지 제목',required:true,wide:true}, {key:'category',label:'분류',type:'select',options:[['NOTICE','공지'],['CONTENTS','콘텐츠'],['EVENT','이벤트'],['GOODS','GOODS']]},
         {key:'published_at',label:'표시 날짜 · 한국 시간',type:'datetime-local',required:true}, {key:'body',label:'공지 내용',type:'textarea',required:true,wide:true,rows:8},
         {key:'images',label:'이미지 주소',type:'images',wide:true,hint:'한 줄에 이미지 주소 하나씩 입력해 주세요.'},
         {key:'pinned',label:'상단에 고정',type:'checkbox'}, {key:'published',label:'공개 목록에 표시',type:'checkbox'}],
-      title:row=>row.title, meta:row=>[({NOTICE:'공지',CONTENTS:'콘텐츠',EVENT:'이벤트',GOODS:'굿즈'})[row.category]||row.category, row.pinned?'상단 고정':'',row.published===false?'비공개':'공개',displayDate(row.published_at)].filter(Boolean).join(' · ')
+      title:row=>row.title, meta:row=>[({NOTICE:'공지',CONTENTS:'콘텐츠',EVENT:'이벤트',GOODS:'GOODS'})[row.category]||row.category, row.pinned?'상단 고정':'',row.published===false?'비공개':'공개',displayDate(row.published_at)].filter(Boolean).join(' · ')
     },
     rewards: {
       singular:'리워드', description:'1티어·2티어 혜택과 필요한 구독 개월 수를 편집해요.',
@@ -55,25 +61,25 @@
       fields:[{key:'title',label:'리워드 이름',required:true,wide:true}, {key:'tier',label:'구독 티어',type:'select',number:true,options:[['1','1티어'],['2','2티어']]},
         {key:'required_months',label:'필요 구독 개월 수',type:'number',min:1,required:true}, {key:'description',label:'혜택 설명',type:'textarea',wide:true,required:true},
         {key:'preview_url',label:'미리보기 이미지 주소',type:'image',wide:true},
-        {key:'private_asset_path',label:'구독 리워드 원본 파일',type:'private',wide:true,hint:'비공개 원본을 업로드하면 구독 조건을 확인한 사람에게만 제공해요.'},
+        {key:'private_asset_path',label:'구독 리워드 첨부파일',type:'private',wide:true,hint:'이미지(PNG·JPG·WebP·GIF), ZIP, APK · 최대 15MiB. 업로드 후 아래 저장을 눌러야 반영됩니다.'},...attachmentMetaFields(),
         {key:'sort_order',label:'표시 순서',type:'number',min:0,hint:'작은 숫자부터 표시돼요.'},
         {key:'published',label:'공개 목록에 표시',type:'checkbox'}],
       title:row=>row.title, meta:row=>`${row.tier}티어 · ${row.required_months}개월 · ${row.published===false?'비공개':'공개'}`
     },
     photos: {
-      singular:'방셀', description:'받는 분의 치지직 채널 ID와 비공개 원본, 제목·태그를 지정해요.',
+      singular:'사진', description:'받는 분의 치지직 채널 ID와 비공개 원본, 제목·태그를 지정해요.',
       defaults:()=>({tags:[],published_at:new Date().toISOString()}),
-      fields:[{key:'title',label:'방셀 제목',required:true,wide:true}, {key:'tags',label:'태그',type:'tags',wide:true,hint:'쉼표 또는 줄바꿈으로 구분해 주세요.'},
+      fields:[{key:'title',label:'사진 제목',required:true,wide:true}, {key:'tags',label:'태그',type:'tags',wide:true,hint:'쉼표 또는 줄바꿈으로 구분해 주세요.'},
         {key:'preview_url',label:'공개 미리보기 이미지 주소',type:'image',wide:true},
-        {key:'private_asset_path',label:'개인 방셀 원본 파일',type:'private',wide:true,hint:'외부 공개 주소 대신 비공개 보관함에 원본을 업로드해 주세요.'},
+        {key:'private_asset_path',label:'개인 첨부파일',type:'private',wide:true,hint:'이미지(PNG·JPG·WebP·GIF), ZIP, APK · 최대 15MiB. 지정한 받는 분만 다운로드할 수 있습니다.'},...attachmentMetaFields(),
         {key:'recipient_channel_id',label:'받는 분의 치지직 채널 ID',required:true,pattern:'[a-fA-F0-9]{32}',hint:'닉네임이 아닌 32자리 채널 ID를 입력해 주세요.'},
         {key:'published_at',label:'표시 날짜 · 한국 시간',type:'datetime-local',required:true}],
       title:row=>row.title, meta:row=>[displayDate(row.published_at), ...(Array.isArray(row.tags)?row.tags:[])].filter(Boolean).join(' · ')
     },
     debts: {
-      singular:'업보', description:'닉네임별 약속과 남은 수량을 적고, 완료 상태를 관리해요.',
+      singular:'보상', description:'닉네임별 약속과 남은 수량을 적고, 완료 상태를 관리해요.',
       defaults:()=>({count:1,unit:'회',status:'pending',updated_at:new Date().toISOString()}),
-      fields:[{key:'nickname',label:'닉네임',required:true}, {key:'label',label:'업보 이름',required:true}, {key:'count',label:'남은 수량',type:'number',min:0,required:true},
+      fields:[{key:'nickname',label:'닉네임',required:true}, {key:'label',label:'보상 이름',required:true}, {key:'count',label:'남은 수량',type:'number',min:0,required:true},
         {key:'unit',label:'단위',required:true,placeholder:'회 / 개 / 분'}, {key:'status',label:'상태',type:'select',options:[['pending','진행 중'],['done','완료']]},
         {key:'note',label:'메모',type:'textarea',wide:true}],
       title:row=>`${row.nickname || ''} · ${row.label || ''}`, meta:row=>`${row.count} ${row.unit || ''} · ${row.status==='done'?'완료':'진행 중'}`
@@ -144,7 +150,7 @@
   function markError(message, node, state) {
     state=state || liveEditors().find(item=>node && item.form.contains(node)) || editor;
     if(state) { state.error.textContent=message;state.error.hidden=false; }
-    if(node){revealField(node);node.focus();}
+    if(node){revealField(node);const target=node.type==='hidden'?node.closest('.adm-field')?.querySelector('button'):node;target?.focus();}
   }
   function errorText(error) {
     return error?.message || S.storageError() || '서버에 저장하지 못했어요. 입력 내용은 그대로 남겨 두었어요. 연결 상태와 관리자 권한을 확인해 주세요.';
@@ -172,6 +178,9 @@
   }
 
   function addField(form, target, spec, value, locked) {
+    if(spec.type==='hidden'){
+      const input=E('input');input.type='hidden';input.name=spec.key;input.value=value==null?'':String(value);target.append(input);return input;
+    }
     const wrapper=E('div','adm-field'+(spec.wide?' adm-field-wide':'')+(spec.type==='checkbox'?' adm-field-check':'')+(spec.key==='links.store'?' adm-field-store':''));
     const id='adm-'+active+'-'+spec.key.replace(/\./g,'-');
     const label=E('label','adm-label',spec.label+(spec.required?' *':'')); label.htmlFor=id;
@@ -200,13 +209,28 @@
       const list=E('datalist');list.id=id+'-colors';colors.forEach(color=>{const option=E('option');option.value=color;list.append(option);});
       input.setAttribute('list',list.id);wrapper.append(list);
     }
+    if(spec.type==='private'){input.type='hidden';label.removeAttribute('for');}
     if(spec.type==='checkbox'){label.prepend(input);wrapper.append(label);} else wrapper.append(label,input);
     let hint=spec.hint || (spec.type==='colorname'?'pink / green / blue 또는 #색상코드':spec.type==='tags'?'한 줄에 하나씩 적거나 쉼표로 구분하세요.':spec.type==='image'?'이미지 주소 또는 assets/로 시작하는 파일 경로를 입력하세요. 아래에서 사진을 확인할 수 있습니다.':'');
     if(hint){const note=E('small','adm-field-hint',hint);note.id=id+'-hint';input.setAttribute('aria-describedby',note.id);wrapper.append(note);}
     if(spec.type==='image' || spec.type==='images')addPreview(input,wrapper,spec.type==='images');
     if(spec.type==='private') {
-      const actions=E('div','adm-private-upload'),file=E('input');file.type='file';file.accept='image/png,image/jpeg,image/webp,image/gif';file.hidden=true;
-      const upload=button('비공개 원본 업로드','adm-button adm-button-small',()=>{if(requireAccess()&&!operation&&!saving())file.click();});
+      const attachment=E('p','adm-attachment-info');attachment.setAttribute('aria-live','polite');wrapper.append(attachment);
+      const metadata=name=>form.elements.namedItem('private_asset_'+name);
+      const paintAttachment=()=>{
+        const path=input.value.trim(),name=metadata('name')?.value,size=Number(metadata('size')?.value||0);
+        attachment.textContent=path?(name||('기존 '+(path.split('.').pop()||'').toUpperCase()+' 파일'))+(size>0?' · '+formatFileSize(size):''):'첨부된 파일이 없습니다.';
+        remove.disabled=!path;
+      };
+      input.paintAttachment=paintAttachment;
+      const actions=E('div','adm-private-upload'),file=E('input');file.type='file';file.accept='.png,.jpg,.jpeg,.webp,.gif,.zip,.apk';file.hidden=true;
+      const upload=button('파일 업로드·교체','adm-button adm-button-small',()=>{if(requireAccess()&&!operation&&!saving())file.click();});
+      const remove=button('첨부 해제','adm-button adm-button-small',()=>{
+        if(!requireAccess()||operation||saving())return;
+        input.value='';['name','size','mime'].forEach(key=>{if(metadata(key))metadata(key).value=key==='size'?'0':'';});
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+      });
+      input.addEventListener('input',paintAttachment);
       file.addEventListener('change',async()=>{
         const selected=file.files[0];file.value='';if(!selected||!requireAccess()||operation||saving())return;
         const version=authVersion;operation=true;upload.disabled=true;updateStatus();
@@ -214,11 +238,14 @@
           if(!window.YamhaRewardAuth?.uploadPrivate||!S.getAccessToken)throw new Error('비공개 원본 연결 설정을 확인해 주세요.');
           const result=await window.YamhaRewardAuth.uploadPrivate(selected,await S.getAccessToken());
           if(!sessionCurrent(version)||!input.isConnected)return;
-          if(!result?.path)throw new Error('업로드된 파일 경로를 확인하지 못했어요.');
-          input.value=result.path;input.dispatchEvent(new Event('input',{bubbles:true}));UI.toast('업로드했어요. 목록에 반영하려면 저장해 주세요.');
+          if(!privateAssetPattern.test(result?.path||''))throw new Error('업로드된 파일을 확인하지 못했어요.');
+          input.value=result.path;
+          const values={name:result.name||selected.name,size:result.size??selected.size,mime:result.mime||selected.type||''};
+          Object.entries(values).forEach(([key,value])=>{if(metadata(key))metadata(key).value=String(value);});
+          input.dispatchEvent(new Event('input',{bubbles:true}));UI.toast('파일을 업로드했어요. 등록 또는 수정 저장을 눌러 주세요.');
         } catch(problem){if(sessionCurrent(version))markError(errorText(problem),input);else requireAccess();}
         finally{if(sessionCurrent(version)){operation=false;upload.disabled=false;updateStatus();}}
-      });actions.append(upload,file);wrapper.append(actions);
+      });actions.append(upload,remove,file);wrapper.append(actions);
     }
     if(spec.presentation) {
       const reset=button('기본값 복원','adm-reset',()=>{
@@ -257,6 +284,7 @@
     if(spec.key==='end_date')return value || null;
     return value;
   }
+  function formatFileSize(bytes){return bytes<1024?bytes+' B':bytes<1024*1024?(bytes/1024).toFixed(1)+' KiB':(bytes/(1024*1024)).toFixed(1)+' MiB';}
   function validateFields(form,fields,state) {
     const invalid=[...form.elements].find(input=>input.willValidate && !input.validity.valid);
     if(invalid){revealField(invalid);form.reportValidity();return false;}
@@ -268,7 +296,7 @@
       if(spec.type==='number' && (!Number.isSafeInteger(Number(value)) || Number(value)<(spec.min || 0)))error=spec.label+'은(는) '+(spec.min || 0)+' 이상의 정수로 입력해 주세요.';
       if(['url','image'].includes(spec.type) && value && (!safeURL(value,spec.type==='image') || (spec.type==='url' && !/^https?:\/\//i.test(value))))error='사용할 수 있는 주소를 입력해 주세요. 웹 주소는 https://로 시작해요.';
       if(spec.type==='images' && lines(value).some(url=>!safeURL(url,true)))error='이미지 주소 중 사용할 수 없는 주소가 있어요. 한 줄에 주소 하나씩 확인해 주세요.';
-      if(spec.type==='private' && value && !/^private\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|gif|webp)$/.test(value))error='비공개 원본 업로드로 받은 파일 경로를 입력해 주세요.';
+      if(spec.type==='private' && value && !privateAssetPattern.test(value))error='파일 업로드·교체 버튼으로 첨부파일을 다시 올려 주세요.';
       if(spec.type==='colorname' && value && !colors.includes(value) && !/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value) && state.startValues[spec.key]!==input.value)error='색상 이름 또는 #aabbcc 형식의 색상코드를 입력해 주세요.';
       if(error){markError(error,input,state);return false;}
     }
@@ -293,6 +321,7 @@
       const grid=E('div','adm-field-grid');fields.forEach(spec=>addField(form,grid,spec,spec.presentation?C.raw(spec.presentation):get(row,spec.key),settings.existing && spec.key==='id'));fieldset.append(grid);
     }
     form.append(fieldset);
+    [...form.elements].filter(input=>input.paintAttachment).forEach(input=>input.paintAttachment());
     const error=E('p','adm-error');error.setAttribute('role','alert');error.hidden=true;form.append(error);
     const actions=E('div','adm-form-actions');
     const save=button(settings.existing?'수정 저장':'등록하기','adm-button adm-button-primary');save.type='submit';
@@ -364,8 +393,8 @@
       {title:'프로필 기본 정보',hint:'나오는 곳 — 프로필 사진 옆의 생일·데뷔·팬네임·소속·MBTI·나이 표입니다.',fields:[
       {key:'fanName',label:'팬 이름'},{key:'birthday',label:'생일',placeholder:'04.06'},{key:'debutDate',label:'데뷔 날짜',type:'date'},
       {key:'agency',label:'소속'},{key:'mbti',label:'MBTI'},{key:'age',label:'나이',placeholder:'21세'}]},
-      {title:'성격·말버릇·취향',hint:'나오는 곳 — 프로필의 성격·말버릇, 좋아하는 것·싫어하는 것 카드입니다.',fields:[
-        {key:'personality',label:'성격'},{key:'catchphrase',label:'말버릇'},
+      {title:'말버릇·취향',hint:'나오는 곳 — 프로필의 말버릇, 좋아하는 것·싫어하는 것 카드입니다.',fields:[
+        {key:'catchphrase',label:'말버릇',wide:true},
         {key:'interests',label:'좋아하는 것',type:'tags'},{key:'dislikes',label:'싫어하는 것',type:'tags'}]},
       {title:'방송 콘텐츠·키워드',hint:'나오는 곳 — 프로필 소개 아래 콘텐츠 표기와, 오전 방송 카드의 #키워드입니다.',fields:[
         {key:'broadcast.categories',label:'주요 콘텐츠',type:'tags'},{key:'keywords',label:'방송 키워드',type:'tags',hint:'한 줄에 하나씩 적으세요. 화면에는 #이 자동으로 붙습니다.'}]},
@@ -551,7 +580,7 @@
     add.disabled=allGuides;
     const actions=E('div','adm-panel-actions');
     if(name==='rewards' || name==='photos') {
-      const preview=E('a','adm-button adm-button-small',name==='photos'?'방셀 화면 미리보기 ↗':'리워드 화면 미리보기 ↗');
+      const preview=E('a','adm-button adm-button-small',name==='photos'?'사진 화면 미리보기 ↗':'리워드 화면 미리보기 ↗');
       preview.href=S.url(name==='photos'?'reward/index.html?tab=photos&preview=1':'reward/index.html?preview=1');
       preview.target='_blank';preview.rel='noopener';actions.append(preview);
     }
