@@ -19,6 +19,13 @@
     return !/\.(zip|apk)$/i.test(String(row.private_asset_name||row.private_asset_path||''));
   }
   const photoActionLabel=(row,preview)=>preview||imageAttachment(row)?text('reward.photoOpen',{title:row.title}):esc(row.title)+' '+text('reward.download');
+  function subscriptionStatusKey(subscription){
+    if(subscription?.status==='subscribed')return 'reward.subscriptionInfo';
+    if(subscription?.status==='none')return 'reward.subscriptionNone';
+    if(['broadcaster_not_connected','broadcaster_reconnect_required'].includes(subscription?.reason))return 'reward.subscriptionConnectionRequired';
+    if(subscription?.reason==='subscription_retry')return 'reward.subscriptionRetry';
+    return 'reward.subscriptionUnavailable';
+  }
   function mount(container,options={}){
     if(typeof container==='string')container=document.querySelector(container);if(!container)return null;
     const auth=window.YamhaRewardAuth,preview=new URLSearchParams(location.search).get('preview')==='1';
@@ -61,7 +68,7 @@
         const r=rows[Number(b.dataset.yrDetail)],can=eligible(r)&&!!r.private_asset_path;let bottom;
         if(r.sample)bottom='<strong>'+text('reward.sampleWarningTitle')+'</strong><br>'+text('reward.sampleWarningBody');
         else if(!account.user)bottom=text('reward.loginRequired')+loginButton();
-        else if(account.subscription?.status==='unavailable')bottom=text('reward.subscriptionUnavailable');
+        else if(account.subscription?.status==='unavailable')bottom=text(subscriptionStatusKey(account.subscription));
         else if(!eligible(r))bottom=text('reward.claimLocked');else if(!r.private_asset_path)bottom=text('reward.filePending');
         else bottom=attachmentInfo(r)+'<button type="button" class="yr-detail-button" data-yr-download>'+text('reward.download')+'</button>';
         showDialog(t('reward.toFan'),(r.preview_url?'<img src="'+esc(r.preview_url)+'" alt="'+esc(r.title)+'">':'')+'<h2>'+esc(r.title)+'</h2><div class="yr-dialog-facts"><span>'+text('reward.tierDetail',{tier:r.tier})+'</span><span>'+text('reward.monthDetail',{months:r.required_months})+'</span></div><p class="yr-dialog-description">'+esc(r.description||t('reward.detailEmpty'))+'</p><div class="yr-dialog-bottom">'+bottom+'</div>','',b);bindLogin(dialog);if(can)dialog.querySelector('[data-yr-download]').onclick=e=>openFile('rewards',r,e.currentTarget,false);
@@ -92,7 +99,7 @@
       const box=container.querySelector('[data-yr-auth]');if(!box)return;if(account.loading){box.innerHTML='<p role="status">'+text('reward.authLoading')+'</p>';return;}
       if(!account.user){box.innerHTML=loginButton()+'<p class="yr-pass-foot" role="status">'+text(!account.configured?'reward.authSetup':account.error?'reward.authError':'reward.loginRequired')+'</p>';bindLogin(box);return;}
       const sub=account.subscription;
-      box.innerHTML='<strong>'+text('reward.authLoggedIn',{nickname:account.user.name})+'</strong><p class="yr-pass-foot">'+(sub?.status==='subscribed'?text('reward.subscriptionInfo',{tier:sub.tier,months:sub.months}):text(sub?.status==='none'?'reward.subscriptionNone':'reward.subscriptionUnavailable'))+'</p><button type="button" class="yr-detail-button" data-yr-refresh>'+text('reward.authRefresh')+'</button><button type="button" class="yr-detail-button" data-yr-receipts>'+text('reward.receiptButton')+'</button><button type="button" class="yr-detail-button" data-yr-logout>'+text('reward.authLogout')+'</button>';
+      box.innerHTML='<strong>'+text('reward.authLoggedIn',{nickname:account.user.name})+'</strong><p class="yr-pass-foot">'+text(subscriptionStatusKey(sub),{tier:sub?.tier,months:sub?.months})+'</p><button type="button" class="yr-detail-button" data-yr-refresh>'+text('reward.authRefresh')+'</button><button type="button" class="yr-detail-button" data-yr-receipts>'+text('reward.receiptButton')+'</button><button type="button" class="yr-detail-button" data-yr-logout>'+text('reward.authLogout')+'</button>';
       box.querySelector('[data-yr-refresh]').onclick=()=>auth.refresh();box.querySelector('[data-yr-receipts]').onclick=e=>showReceipts(e.currentTarget);box.querySelector('[data-yr-logout]').onclick=async()=>{++photoEpoch;myPhotos=[];dialog.close();renderPanel();try{await auth.logout();}catch{notice('reward.authError');}};
     }
     function renderShell(){

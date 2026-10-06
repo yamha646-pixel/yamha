@@ -106,6 +106,22 @@
   const editors=new Set();
   const cardEditors=new WeakMap();
   let authVersion=0, backupVersion=0, unlocked=false, identity='', activating=false, signingOut=false;
+  const broadcasterCallbackMessages={
+    connected:'치지직 인증에서 돌아왔습니다. 아래 서버 연결 상태를 확인해 주세요.',
+    failed:'방송인 연결을 완료하지 못했습니다. 아래 상태를 확인한 뒤 다시 연결해 주세요.',
+    wrong_broadcaster:'얌하 방송 계정이 아닌 계정으로 인증했습니다. 치지직에서 얌하 계정으로 로그인한 뒤 다시 연결해 주세요.',
+    cancelled:'방송인 연결을 취소했습니다. 필요한 경우 다시 연결해 주세요.',
+    expired:'연결 확인 시간이 지났습니다. 다시 연결해 주세요.',
+    subscription_permission_required:'구독 조회 권한이 확인되지 않았습니다. 치지직 애플리케이션의 권한을 확인한 뒤 다시 연결해 주세요.',
+    storage_unavailable:'연결 정보를 저장하거나 확인하지 못했습니다. 서버 연결 설정을 확인해 주세요.',
+    chzzk_unavailable:'치지직에서 연결 정보를 확인하지 못했습니다. 아래 상태를 확인한 뒤 다시 시도해 주세요.',
+    connection_save_failed:'치지직 인증 후 연결 정보 저장을 확인하지 못했습니다. 아래 상태를 확인한 뒤 다시 연결해 주세요.',
+    broadcaster_reconnect_required:'저장된 방송인 연결을 다시 인증해야 합니다. 얌하 계정으로 다시 연결해 주세요.',
+    subscription_retry:'연결 정보를 갱신 중입니다. 잠시 후 연결 상태를 다시 확인해 주세요.',
+    setup_required:'치지직 연결 설정이 완료되지 않았습니다. 서버 설정을 확인해 주세요.'
+  };
+  let connectionCallback='',connectionCallbackPending=false,connectionView=null,connectionVersion=0;
+  let connectionState={status:'idle'},connectionProblem='';
   const E = (tag, cls, text) => { const node=document.createElement(tag); if(cls)node.className=cls; if(text!==undefined)node.textContent=text; return node; };
   const button = (label, cls, handler) => { const node=E('button',cls,label);node.type='button';if(handler)node.addEventListener('click',handler);return node; };
   const get = (object,path) => path.split('.').reduce((value,key)=>value==null?undefined:value[key],object);
@@ -503,17 +519,66 @@
       result.textContent=query?hits+'개 항목을 찾았습니다. 검색을 지우면 전체 항목이 다시 보입니다.':'내용은 아래 카드에서 수정하고, 제목·장식은 ‘문구·사진 세부 편집’에서 찾을 수 있습니다.';
     });
   }
+  function consumeBroadcasterCallback() {
+    const url=new URL(window.location.href),result=url.searchParams.get('chzzk');
+    if(!Object.hasOwn(broadcasterCallbackMessages,result))return;
+    connectionCallback=result;connectionCallbackPending=true;url.searchParams.delete('chzzk');
+    window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+  }
+  function paintBroadcasterConnection() {
+    const view=connectionView;if(!view?.card.isConnected)return;
+    const state=connectionState;
+    const messages={idle:'연결 상태를 아직 확인하지 않았습니다.',loading:'서버에 저장된 연결 상태를 확인하고 있습니다…',connected:'연결 확인 완료 · 서버에 저장된 방송인 연결과 구독 조회를 확인했습니다.',not_connected:'미연결 · 서버에 방송인 연결 정보가 없습니다. 얌하 계정으로 연결해 주세요.',reconnect_required:'재연결 필요 · 얌하 계정으로 방송인 연결을 다시 진행해 주세요.',error:'연결 상태를 확인하지 못했습니다.'};
+    view.state.textContent=messages[state.status] || messages.error;
+    const updated=new Date(state.updatedAt || '');
+    view.updated.textContent=state.status==='connected'&&!Number.isNaN(updated.getTime())?'연결 정보 갱신: '+updated.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'';
+    view.updated.hidden=!view.updated.textContent;
+    view.callback.textContent=broadcasterCallbackMessages[connectionCallback] || '';
+    view.callback.hidden=!view.callback.textContent;
+    view.callback.className=connectionCallback==='connected'?'adm-card-note':'adm-error';
+    view.error.textContent=connectionProblem || state.error || '';view.error.hidden=!view.error.textContent;
+    view.refresh.disabled=state.status==='loading'||operation;
+    view.refresh.textContent=state.status==='loading'?'연결 상태 확인 중…':'연결 상태 확인';
+    const actionStatus=state.lastStatus || state.status;
+    view.connect.textContent=['connected','reconnect_required'].includes(actionStatus)?'방송인 다시 연결':'치지직 방송인 연결';
+    view.connect.disabled=operation||state.status==='loading';
+  }
+  async function refreshBroadcasterStatus() {
+    if(!requireAccess()||operation||saving()||connectionState.status==='loading')return;
+    const session=authVersion,request=++connectionVersion;
+    const current=()=>sessionCurrent(session)&&request===connectionVersion;
+    const lastStatus=['connected','not_connected','reconnect_required'].includes(connectionState.status)?connectionState.status:connectionState.lastStatus;
+    connectionState={status:'loading',lastStatus};connectionProblem='';paintBroadcasterConnection();
+    try{
+      if(!window.YamhaRewardAuth?.broadcasterStatus||!S.getAccessToken)throw new Error('치지직 연결 설정을 확인해 주세요.');
+      const token=await S.getAccessToken();if(!current())return;
+      const result=await window.YamhaRewardAuth.broadcasterStatus(token);if(!current())return;
+      connectionState={...result.connection};
+    }catch(problem){if(current())connectionState={status:'error',lastStatus,error:errorText(problem)};}
+    finally{if(current())paintBroadcasterConnection();}
+  }
   function rewardConnectionCard() {
     const card=E('section','adm-connection');
     const text=E('div');text.append(E('h2','adm-section-title','치지직 방송인 연결'),E('p','adm-card-note','얌하 계정으로 한 번 연결하면 구독자의 티어와 개월 수를 확인할 수 있습니다. 아래 리워드 등록에서 수령 조건을 정하세요.'));
+    const state=E('p','adm-card-note');state.setAttribute('role','status');state.setAttribute('aria-live','polite');
+    const updated=E('p','adm-field-hint'),callback=E('p','adm-card-note');callback.setAttribute('role','status');
+    text.append(state,updated,E('p','adm-field-hint','연결 정보는 서버에 저장됩니다. 페이지 새로고침이나 시청자 로그아웃으로 풀리지 않으며, 재연결이 필요한 경우 아래 상태에 표시됩니다.'),callback);
     const error=E('p','adm-error');error.hidden=true;error.setAttribute('role','alert');
     const connect=button('치지직 방송인 연결','adm-button adm-button-primary',async event=>{
-      if(!canLeave())return;const node=event.currentTarget,version=authVersion;operation=true;node.disabled=true;error.hidden=true;updateStatus();
-      try{if(!window.YamhaRewardAuth?.connectBroadcaster||!S.getAccessToken)throw new Error('치지직 연결 설정을 확인해 주세요.');await window.YamhaRewardAuth.connectBroadcaster(await S.getAccessToken());}
-      catch(problem){if(sessionCurrent(version)){error.textContent=errorText(problem);error.hidden=false;}else requireAccess();}
-      finally{if(sessionCurrent(version)){operation=false;node.disabled=false;updateStatus();}}
+      if(!canLeave())return;const version=authVersion;operation=true;++connectionVersion;
+      if(connectionState.status==='loading')connectionState={status:'idle'};
+      connectionProblem='';connectionCallback='';paintBroadcasterConnection();updateStatus();
+      const current=()=>sessionCurrent(version)&&card.isConnected;
+      try{
+        if(!window.YamhaRewardAuth?.connectBroadcaster||!S.getAccessToken)throw new Error('치지직 연결 설정을 확인해 주세요.');
+        const token=await S.getAccessToken();if(!current())return;
+        await window.YamhaRewardAuth.connectBroadcaster(token,current);
+      }
+      catch(problem){if(current()){connectionProblem=errorText(problem);paintBroadcasterConnection();}}
+      finally{if(sessionCurrent(version)){operation=false;paintBroadcasterConnection();updateStatus();}}
     });
-    card.append(text,connect,error);return card;
+    const refresh=button('연결 상태 확인','adm-button',refreshBroadcasterStatus),actions=E('div','adm-header-actions');actions.append(refresh,connect);
+    connectionView={card,state,updated,callback,error,connect,refresh};card.append(text,actions,error);return card;
   }
   async function renderPage(page) {
     pane.replaceChildren();collectionHost=null;activeCollection='';
@@ -522,7 +587,7 @@
     const primary=E('div','adm-page-settings'),advanced=E('div','adm-page-settings adm-advanced-settings');
     const searchHost=E('div','adm-search-host');pane.append(searchHost);
     const names=pageCollections[page] || [];
-    if(page==='reward')pane.append(rewardConnectionCard());
+    if(page==='reward'){pane.append(rewardConnectionCard());paintBroadcasterConnection();if(connectionState.status==='idle')void refreshBroadcasterStatus();}
     if(page==='profile'||!names.length)pane.append(primary);
     if(names.length){
       const section=E('section','adm-page-collections'),tabs=E('div','adm-subtabs');tabs.setAttribute('aria-label',tabNames[page]+' 목록 관리');
@@ -714,6 +779,7 @@
   }
   function clearProtected() {
     ++authVersion;++loadVersion;++backupVersion;unlocked=false;activating=false;identity='';
+    ++connectionVersion;connectionState={status:'idle'};connectionProblem='';connectionView=null;
     calendar?.destroy();calendar=null;editor=null;currentRows=[];operation=false;active='home';editors.clear();collectionHost=null;activeCollection='';
     host.replaceChildren();pane=null;status=null;tabBar=null;backupPanel=null;
   }
@@ -765,7 +831,8 @@
       await S.refresh();
       if(version!==authVersion || signingOut)return;
       if(!S.isAdmin())throw new Error(S.authState()?.error || '관리자 권한을 확인하지 못했어요.');
-      activating=false;unlocked=true;identity=S.authState()?.user?.id || '';buildStudio();await switchTab('home');
+      activating=false;unlocked=true;identity=S.authState()?.user?.id || '';buildStudio();
+      const firstPage=connectionCallbackPending?'reward':'home';connectionCallbackPending=false;await switchTab(firstPage);
     }catch(problem){if(version===authVersion)lock(errorText(problem));}
   }
   function buildStudio() {
@@ -793,6 +860,7 @@
   async function init() {
     host=document.getElementById('page-root');S=window.YamhaSite;UI=window.YamhaUI;C=window.YamhaContent;
     if(!host || !S || !UI || !C)return;
+    consumeBroadcasterCallback();
     host.classList.add('adm-root');host.replaceChildren(E('p','adm-empty','로그인 상태를 확인하고 있어요…'));
     await S.ready;await S.authReady;
     if(S.mode!=='supabase' || typeof S.isAdmin!=='function'){host.replaceChildren(E('p','adm-error','서버 연결 설정을 확인해 주세요.'));return;}

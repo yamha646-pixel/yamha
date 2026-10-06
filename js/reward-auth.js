@@ -13,6 +13,12 @@
     setup_required:'치지직 연결 설정이 아직 완료되지 않았어요. Cloudflare 환경변수와 재배포 상태를 확인해 주세요.',
     storage_unavailable:'저장 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.',
     service_unavailable:'연결 서버에 응답이 없어요. 잠시 후 다시 시도해 주세요.',
+    chzzk_unavailable:'치지직에서 방송인 연결과 구독 조회를 확인하지 못했어요. 연결 상태를 다시 확인해 주세요.',
+    subscription_permission_required:'치지직 구독 조회 권한이 확인되지 않았어요. 애플리케이션 권한을 확인한 뒤 얌하 계정으로 다시 연결해 주세요.',
+    connection_save_failed:'치지직 인증 후 연결 정보 저장을 확인하지 못했어요. 연결 상태를 확인한 뒤 다시 연결해 주세요.',
+    broadcaster_reconnect_required:'저장된 방송인 연결을 다시 인증해야 해요. 얌하 계정으로 방송인 연결을 다시 진행해 주세요.',
+    subscription_retry:'연결 정보를 갱신 중이에요. 잠시 후 연결 상태를 다시 확인해 주세요.',
+    broadcaster_status_invalid:'서버의 연결 상태 응답을 확인하지 못했어요. 최신 서버 배포와 연결 설정을 확인해 주세요.',
     wrong_origin:'현재 접속 주소와 연결 설정의 사이트 주소가 달라요. 등록된 사이트에서 다시 시도해 주세요.',
     csrf_rejected:'요청을 확인하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.',
     upload_rejected:'첨부파일을 확인해 주세요. 이미지·ZIP·APK 파일을 업로드할 수 있어요.',
@@ -63,8 +69,15 @@
     if(!expected||url.origin!==new URL(expected).origin||!url.pathname.startsWith('/storage/v1/object/sign/yamha-private-rewards/'))throw failure('file_unavailable');
     return data.url;
   }
-  async function connectBroadcaster(accessToken){
+  async function broadcasterStatus(accessToken){
+    const data=await call('admin/status',{headers:{Authorization:'Bearer '+accessToken}});
+    if(data?.configured!==true||!['connected','not_connected','reconnect_required'].includes(data.connection?.status))throw failure('broadcaster_status_invalid');
+    return {configured:true,connection:{status:data.connection.status,...Object.fromEntries(['updatedAt','expiresAt'].filter(key=>typeof data.connection[key]==='string').map(key=>[key,data.connection[key]]))}};
+  }
+  async function connectBroadcaster(accessToken,isCurrent=()=>true){
+    if(!isCurrent())throw failure('session_changed');
     const data=await call('admin/connect',{method:'POST',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:'{}'});
+    if(!isCurrent())throw failure('session_changed');
     const url=new URL(data.authorizationUrl);
     if(url.origin!=='https://chzzk.naver.com'||url.pathname!=='/account-interlock')throw failure('service_unavailable');
     location.assign(url.href);
@@ -77,6 +90,6 @@
     return call('admin/upload',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
   }
   const photos=()=>paged('photos'),receipts=()=>paged('receipts');
-  window.YamhaRewardAuth={refresh,login,logout,photos,download,receipts,connectBroadcaster,uploadPrivate,
+  window.YamhaRewardAuth={refresh,login,logout,photos,download,receipts,connectBroadcaster,broadcasterStatus,uploadPrivate,
     state:()=>({...current}),onChange(fn){listeners.add(fn);return()=>listeners.delete(fn);}};
 })();

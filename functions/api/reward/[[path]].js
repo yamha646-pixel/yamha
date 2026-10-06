@@ -9,7 +9,7 @@ const OPAQUE = /^[a-f0-9]{64}$/;
 const ASSET = /^private\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.(png|jpg|webp|gif|zip|apk)$/;
 const ASSET_MIME = {png:'image/png',jpg:'image/jpeg',webp:'image/webp',gif:'image/gif',zip:'application/zip',apk:'application/vnd.android.package-archive'};
 const encoder = new TextEncoder();
-class Failure extends Error { constructor(code, status = 503) { super(code); this.code = code; this.status = status; } }
+class Failure extends Error { constructor(code, status = 503, upstreamStatus = null) { super(code); this.code = code; this.status = status; this.upstreamStatus = upstreamStatus; } }
 const hex = bytes => Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
 const random = () => hex(crypto.getRandomValues(new Uint8Array(32)));
 const hash = async value => hex(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value))));
@@ -92,12 +92,12 @@ function origin(request, cfg) {
   if (new URL(request.url).origin !== cfg.SITE_ORIGIN) throw new Failure('wrong_origin', 403);
   if (request.method !== 'GET' && request.headers.get('Origin') !== cfg.SITE_ORIGIN) throw new Failure('csrf_rejected', 403);
 }
-async function requestJson(url, init = {}, errorCode = 'upstream_unavailable') {
+async function requestJson(url, init = {}, errorCode = 'upstream_unavailable', timeoutMs = 15000) {
   let response;
   // Workers supports manual/follow, not redirect:'error'. Never forward credentials to a redirect.
-  try { response = await fetch(url, { ...init, redirect: 'manual', signal: AbortSignal.timeout(15000) }); } catch { throw new Failure(errorCode); }
+  try { response = await fetch(url, { ...init, redirect: 'manual', signal: AbortSignal.timeout(timeoutMs) }); } catch { throw new Failure(errorCode); }
   if (response.status >= 300 && response.status < 400) throw new Failure(errorCode);
-  if (!response.ok) throw new Failure(errorCode, response.status === 401 || response.status === 403 ? 403 : 503);
+  if (!response.ok) throw new Failure(errorCode, response.status === 401 || response.status === 403 ? 403 : 503, response.status);
   if (response.status === 204) return null;
   try { const text=await response.text();return text ? JSON.parse(text) : null; } catch { throw new Failure(errorCode); }
 }
@@ -107,13 +107,25 @@ function serviceHeaders(cfg) {
   if (cfg.SUPABASE_SECRET_KEY.startsWith('eyJ')) h.Authorization = 'Bearer ' + cfg.SUPABASE_SECRET_KEY;
   return h;
 }
-async function db(cfg, path, method = 'GET', body, extra = {}) {
-  return requestJson(cfg.db + '/rest/v1/' + path, { method, headers: { ...serviceHeaders(cfg), ...extra }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }, 'storage_unavailable');
+async function db(cfg, path, method = 'GET', body, extra = {}, timeoutMs = 15000) {
+  return requestJson(cfg.db + '/rest/v1/' + path, { method, headers: { ...serviceHeaders(cfg), ...extra }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }, 'storage_unavailable', timeoutMs);
 }
 async function chzzk(path, init = {}) {
   const result = await requestJson(API + path, { ...init, headers: { 'Content-Type': 'application/json', ...init.headers } }, 'chzzk_unavailable');
-  if (!result || result.code !== 200 || !result.content) throw new Failure('chzzk_unavailable');
+  if (!result || result.code !== 200 || !result.content) throw new Failure('chzzk_unavailable', 503, Number(result?.code) || null);
   return result.content;
+}
+async function subscriberPage(access, page = 0, size = 50) {
+  let result;
+  try { result = await chzzk(`/open/v1/channels/subscribers?page=${page}&size=${size}&sort=RECENT`, { headers: { Authorization: 'Bearer ' + access } }); }
+  catch (error) {
+    if (error.upstreamStatus === 401) throw new Failure('broadcaster_reconnect_required', 403);
+    if (error.upstreamStatus === 403) throw new Failure('subscription_permission_required', 403);
+    if (error.upstreamStatus === 429) throw new Failure('subscription_retry');
+    throw error;
+  }
+  if (!Array.isArray(result.data) || result.data.length > size) throw new Failure('subscription_unavailable');
+  return result;
 }
 async function token(cfg, fields) {
   const t = await chzzk('/auth/v1/token', { method: 'POST', body: JSON.stringify({ ...fields, clientId: cfg.CHZZK_CLIENT_ID, clientSecret: cfg.CHZZK_CLIENT_SECRET }) });
@@ -176,9 +188,12 @@ async function callback(request, cfg) {
     if (mode === 'broadcaster') {
       if (user.channelId.toLowerCase() !== cfg.CHZZK_CHANNEL_ID.toLowerCase()) throw new Failure('wrong_broadcaster', 403);
       // Check the required broadcaster grant before replacing a previously working connection.
-      const check = await chzzk('/open/v1/channels/subscribers?page=0&size=1&sort=RECENT', { headers: { Authorization: 'Bearer ' + t.accessToken } });
-      if (!Array.isArray(check.data)) throw new Failure('subscription_permission_required', 403);
-      await db(cfg, 'yamha_chzzk_broadcaster?on_conflict=channel_id', 'POST', { channel_id: cfg.CHZZK_CHANNEL_ID.toLowerCase(), encrypted_tokens: await seal(cfg, { accessToken: t.accessToken, refreshToken: t.refreshToken }), expires_at: future(Number(t.expiresIn)), refresh_lock: null, refresh_locked_until: null, connected_by: rows[0].admin_id, updated_at: now() }, { Prefer: 'resolution=merge-duplicates' });
+      await subscriberPage(t.accessToken, 0, 1);
+      const connection = { channel_id: cfg.CHZZK_CHANNEL_ID.toLowerCase(), encrypted_tokens: await seal(cfg, { accessToken: t.accessToken, refreshToken: t.refreshToken }), expires_at: future(Number(t.expiresIn)), refresh_lock: null, refresh_locked_until: null, connected_by: rows[0].admin_id, updated_at: now() };
+      await db(cfg, 'yamha_chzzk_broadcaster?on_conflict=channel_id', 'POST', connection, { Prefer: 'resolution=merge-duplicates' });
+      // Confirm the saved row before reporting success. Never return the stored tokens.
+      const saved = await db(cfg, 'yamha_chzzk_broadcaster?channel_id=eq.' + connection.channel_id + '&select=channel_id,encrypted_tokens&limit=1');
+      if (saved?.length !== 1 || saved[0].channel_id !== connection.channel_id || saved[0].encrypted_tokens !== connection.encrypted_tokens) throw new Failure('connection_save_failed');
       return redirect(cfg.SITE_ORIGIN + destination + 'connected', [clear]);
     }
     const sid = random();
@@ -188,9 +203,39 @@ async function callback(request, cfg) {
     // Viewer provider tokens are deliberately not persisted or returned to the browser.
     return redirect(cfg.SITE_ORIGIN + destination + 'connected', [clear, cookie(COOKIE, sid, 7 * 86400)]);
   } catch (error) {
-    const code = error.code === 'wrong_broadcaster' ? 'wrong_broadcaster' : 'failed';
+    const safe = ['wrong_broadcaster','broadcaster_reconnect_required','subscription_permission_required','subscription_retry','storage_unavailable','chzzk_unavailable','connection_save_failed'];
+    const code = mode === 'broadcaster' && safe.includes(error.code) ? error.code : 'failed';
     return redirect(cfg.SITE_ORIGIN + destination + code, [clear]);
   }
+}
+async function saveRotatedTokens(cfg, channel, lock, previous, fresh) {
+  const query = 'yamha_chzzk_broadcaster?channel_id=eq.' + channel;
+  const encrypted = await seal(cfg, { accessToken: fresh.accessToken, refreshToken: fresh.refreshToken });
+  const patch = { encrypted_tokens: encrypted, expires_at: future(Number(fresh.expiresIn)), refresh_lock: null, refresh_locked_until: null, updated_at: now() };
+  // Refresh tokens are single-use: retry persistence of this result, never the provider refresh.
+  // Bound storage waits; the lock and old ciphertext prevent overwriting a newer connection.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const updated = await db(cfg, query + '&refresh_lock=eq.' + lock + '&encrypted_tokens=eq.' + encodeURIComponent(previous), 'PATCH', patch, { Prefer: 'return=representation' }, 5000);
+      if (updated?.length === 1 && updated[0].encrypted_tokens === encrypted) return fresh.accessToken;
+    } catch (error) {
+      if (error.upstreamStatus === 401 || error.upstreamStatus === 403) throw error;
+    }
+    // A timed-out write may already have committed. Also respect a newer admin reconnection.
+    let saved;
+    try { saved = await db(cfg, query + '&select=*&limit=1', 'GET', undefined, {}, 3000); }
+    catch (error) {
+      if (error.upstreamStatus === 401 || error.upstreamStatus === 403) throw error;
+      continue;
+    }
+    if (!Array.isArray(saved)) continue;
+    if (!saved.length) throw new Failure('broadcaster_not_connected');
+    const current = saved[0];
+    if (current.encrypted_tokens === encrypted) return fresh.accessToken;
+    if (current.encrypted_tokens !== previous && Date.parse(current.expires_at) > Date.now() + 60000) return (await unseal(cfg, current.encrypted_tokens)).accessToken;
+    if (current.refresh_lock !== lock || current.encrypted_tokens !== previous) throw new Failure('subscription_retry');
+  }
+  throw new Failure('storage_unavailable');
 }
 async function broadcasterToken(cfg) {
   const channel = cfg.CHZZK_CHANNEL_ID.toLowerCase();
@@ -208,21 +253,36 @@ async function broadcasterToken(cfg) {
   try {
     const current = await unseal(cfg, claimed[0].encrypted_tokens);
     const fresh = await token(cfg, { grantType: 'refresh_token', refreshToken: current.refreshToken });
-    const updated = await db(cfg, 'yamha_chzzk_broadcaster?channel_id=eq.' + channel + '&refresh_lock=eq.' + lock, 'PATCH', { encrypted_tokens: await seal(cfg, { accessToken: fresh.accessToken, refreshToken: fresh.refreshToken }), expires_at: future(Number(fresh.expiresIn)), refresh_lock: null, refresh_locked_until: null, updated_at: now() }, { Prefer: 'return=representation' });
-    if (updated?.length !== 1) throw new Failure('subscription_retry');
-    return fresh.accessToken;
+    return await saveRotatedTokens(cfg, channel, lock, claimed[0].encrypted_tokens, fresh);
   } catch (error) {
     await db(cfg, 'yamha_chzzk_broadcaster?channel_id=eq.' + channel + '&refresh_lock=eq.' + lock, 'PATCH', { refresh_lock: null, refresh_locked_until: null }).catch(() => {});
+    if (error.code === 'chzzk_unavailable' && error.upstreamStatus === 401) throw new Failure('broadcaster_reconnect_required', 403);
     throw error;
   }
+}
+async function broadcasterStatus(request, cfg) {
+  await admin(request, cfg);
+  const query = 'yamha_chzzk_broadcaster?channel_id=eq.' + cfg.CHZZK_CHANNEL_ID.toLowerCase() + '&select=updated_at,expires_at&limit=1';
+  const rows = await db(cfg, query);
+  if (!Array.isArray(rows)) throw new Failure('storage_unavailable');
+  if (!rows.length) return json({ configured: true, connection: { status: 'not_connected' } });
+  try { await subscriberPage(await broadcasterToken(cfg), 0, 1); }
+  catch (error) {
+    if (error.code === 'broadcaster_not_connected') return json({ configured: true, connection: { status: 'not_connected' } });
+    if (error.code === 'broadcaster_reconnect_required') return json({ configured: true, connection: { status: 'reconnect_required' } });
+    throw error;
+  }
+  const current = await db(cfg, query);
+  if (!Array.isArray(current)) throw new Failure('storage_unavailable');
+  if (!current.length) return json({ configured: true, connection: { status: 'not_connected' } });
+  return json({ configured: true, connection: { status: 'connected', updatedAt: current[0].updated_at, expiresAt: current[0].expires_at } });
 }
 async function subscription(cfg, channelId) {
   const access = await broadcasterToken(cfg);
   // Official API: integer page starting at zero; maximum size 50. No viewer-target filter exists.
   const maxPages = Math.min(1000, Math.max(1, Number(cfg.CHZZK_MAX_SUBSCRIBER_PAGES) || 200));
   for (let page = 0; page < maxPages; page++) {
-    const out = await chzzk(`/open/v1/channels/subscribers?page=${page}&size=50&sort=RECENT`, { headers: { Authorization: 'Bearer ' + access } });
-    if (!Array.isArray(out.data) || out.data.length > 50) throw new Failure('subscription_unavailable');
+    const out = await subscriberPage(access, page, 50);
     const found = out.data.find(x => String(x.channelId || '').toLowerCase() === channelId);
     if (found) {
       const tier = Number(found.tierNo), months = Number(found.month);
@@ -295,6 +355,7 @@ export async function onRequest(context) {
     cfg=config(context.env);origin(request,cfg);
     if(path==='auth/start'&&request.method==='GET')return await start(request,cfg,'viewer');
     if(path==='admin/connect'&&request.method==='POST')return await start(request,cfg,'broadcaster');
+    if(path==='admin/status'&&request.method==='GET')return await broadcasterStatus(request,cfg);
     if(path==='auth/callback'&&request.method==='GET')return await callback(request,cfg);
     if(path==='session'&&request.method==='GET')return await status(request,cfg);
     if(path==='photos'&&request.method==='GET')return await photos(request,cfg);
