@@ -3,9 +3,9 @@
   'use strict';
   if (document.body.dataset.page !== 'admin') return;
   const collections = ['schedule', 'news', 'rewards', 'photos', 'debts', 'guides', 'timeline', 'songs'];
-  const tabNames = {common:'공통', home:'메인', profile:'프로필', schedule:'일정', news:'공지', store:'STORE', reward:'REWARD', debt:'업보', guide:'안내', song:'노래책'};
-  const pageCollections = {profile:['timeline'],schedule:['schedule'],news:['news'],reward:['rewards','photos'],debt:['debts'],guide:['guides'],song:['songs']};
-  const pagePaths = {common:'index.html',home:'index.html',profile:'profile/index.html',schedule:'schedule/index.html',news:'news/index.html',store:'store/index.html',reward:'reward/index.html',debt:'debt/index.html',guide:'guide/index.html',song:'song/index.html'};
+  const tabNames = {common:'공통', home:'메인', profile:'프로필', schedule:'일정', news:'공지', store:'STORE', reward:'REWARD', debt:'업보', guide:'안내'};
+  const pageCollections = {profile:['timeline'],schedule:['schedule'],news:['news'],reward:['rewards','photos'],debt:['debts'],guide:['guides']};
+  const pagePaths = {common:'index.html',home:'index.html',profile:'profile/index.html',schedule:'schedule/index.html',news:'news/index.html',store:'store/index.html',reward:'reward/index.html',debt:'debt/index.html',guide:'guide/index.html'};
   const colors = ['pink', 'green', 'lime', 'blue', 'yellow', 'orange', 'purple', 'red', 'gray', 'cream'];
   const configs = {
     schedule: {
@@ -24,7 +24,7 @@
     news: {
       singular:'공지', description:'상단 고정과 공개 여부를 정하고, 이미지 주소를 여러 개 추가할 수 있어요.',
       defaults:() => ({category:'NOTICE', images:[], pinned:false, published:true, published_at:new Date().toISOString()}),
-      fields:[{key:'title',label:'공지 제목',required:true,wide:true}, {key:'category',label:'분류',type:'select',options:[['NOTICE','공지'],['CONTENTS','콘텐츠'],['EVENT','이벤트']]},
+      fields:[{key:'title',label:'공지 제목',required:true,wide:true}, {key:'category',label:'분류',type:'select',options:[['NOTICE','공지'],['CONTENTS','콘텐츠'],['EVENT','이벤트'],['GOODS','굿즈']]},
         {key:'published_at',label:'표시 날짜 · 한국 시간',type:'datetime-local',required:true}, {key:'body',label:'공지 내용',type:'textarea',required:true,wide:true,rows:8},
         {key:'images',label:'이미지 주소',type:'images',wide:true,hint:'한 줄에 이미지 주소 하나씩 입력해 주세요.'},
         {key:'pinned',label:'상단에 고정',type:'checkbox'}, {key:'published',label:'공개 목록에 표시',type:'checkbox'}],
@@ -66,21 +66,13 @@
         {key:'body',label:'기록 내용',type:'textarea',wide:true},{key:'image',label:'기록 이미지 주소',type:'image',wide:true}],
       title:row=>row.title, meta:row=>row.date || ''
     },
-    songs: {
-      singular:'노래', description:'노래 제목·아티스트·장르·메모를 편집해요.',
-      defaults:()=>({title:'',artist:'',genre:'',memo:'',published:true}),
-      fields:[{key:'title',label:'곡 제목',required:true,wide:true},{key:'artist',label:'아티스트',required:true},
-        {key:'genre',label:'장르',placeholder:'K-POP / J-POP / POP'},{key:'memo',label:'메모',type:'textarea',wide:true},
-        {key:'published',label:'공개 목록에 표시',type:'checkbox'}],
-      title:row=>row.title,meta:row=>[row.artist,row.genre,row.published===false?'비공개':'공개'].filter(Boolean).join(' · ')
-    },
     guides: {
       singular:'안내', description:'방송 채팅·팬카페·2차 창작 안내의 문구와 이미지를 편집해요.',
       defaults:()=>({id:'chat',images:[],sort_order:0,updated_at:new Date().toISOString()}),
       fields:[{key:'id',label:'안내 종류',type:'select',options:[['chat','방송 채팅'],['fan','팬카페'],['creation','2차 창작']],required:true},
         {key:'sort_order',label:'표시 순서',type:'number',min:0}, {key:'title',label:'안내 제목',required:true,wide:true},
         {key:'body',label:'안내 내용',type:'textarea',required:true,wide:true,rows:12},
-        {key:'images',label:'안내 이미지 주소',type:'images',wide:true,hint:'한 줄에 이미지 주소 하나씩 입력해 주세요.'}],
+        {key:'images',label:'안내 이미지 주소',type:'images',wide:true,preserveDesignSlots:true,hint:'한 줄에 이미지 주소 하나씩 입력해 주세요. 2차 창작 안내는 1행: 겉옷 없음, 2행: 겉옷 있음, 3행: 마냥단 디자인 순서예요. 숨길 사진은 해당 행을 빈 줄로 남겨 주세요.'}],
       title:row=>row.title, meta:row=>[({chat:'방송 채팅',fan:'팬카페',creation:'2차 창작'})[row.id]||row.id,displayDate(row.updated_at)].join(' · ')
     }
   };
@@ -229,7 +221,9 @@
     if(spec.type==='checkbox')return input.checked;
     const value=input.value.trim();
     if(spec.type==='number' || spec.number)return value===''?0:Number(value);
-    if(spec.type==='images')return unique(lines(value));
+    if(spec.type==='images')return spec.preserveDesignSlots && form.elements.namedItem('id')?.value==='creation'
+      ? (value?input.value.split(/\r?\n/).map(part=>part.trim()):[])
+      : unique(lines(value));
     if(spec.type==='tags')return unique(value.split(/[,\n]/).map(part=>part.trim()).filter(Boolean));
     if(spec.type==='datetime-local')return value?new Date(value+':00+09:00').toISOString():null;
     if(spec.key==='recipient_channel_id')return value.toLowerCase();
@@ -306,6 +300,7 @@
   // Presentation names are literal keys inside profile.presentation, not nested paths.
   function cataloguePage(key) {
     const parts=key.split('.'),prefix=parts[0];
+    if(prefix==='song'||prefix==='songs'||(prefix==='heading'&&parts[1]==='song'))return null;
     if(prefix==='heading')return Object.hasOwn(tabNames,parts[1])?parts[1]:'common';
     if(['shell','shared','pages'].includes(prefix))return 'common';
     return ({calendar:'schedule',rewardPreview:'reward',rewards:'reward',photos:'reward',debts:'debt',guides:'guide',songs:'song'})[prefix] || (Object.hasOwn(tabNames,prefix)?prefix:'common');
@@ -329,14 +324,15 @@
       {key:'name',label:'활동 이름',hint:'메인·공통 이름과 같은 값이에요.'},{key:'englishName',label:'영문 이름'},
       {key:'bio',label:'한 줄 소개',wide:true},{key:'intro',label:'자세한 소개',type:'textarea',wide:true},
       {key:'fanName',label:'팬 이름'},{key:'birthday',label:'생일',placeholder:'04.06'},{key:'debutDate',label:'데뷔 날짜',type:'date'},
-      {key:'agency',label:'소속'},{key:'gender',label:'성별'},{key:'personality',label:'성격'},{key:'catchphrase',label:'말버릇'}]},
+      {key:'agency',label:'소속'},{key:'mbti',label:'MBTI'},{key:'age',label:'나이',placeholder:'21세'},
+      {key:'personality',label:'성격'},{key:'catchphrase',label:'말버릇'}]},
       {title:'방송과 취향',fields:[{key:'broadcast.categories',label:'주요 콘텐츠',type:'tags'},{key:'interests',label:'좋아하는 것',type:'tags'},
-      {key:'dislikes',label:'싫어하는 것',type:'tags'},{key:'games',label:'즐기는 게임'},{key:'genres',label:'노래 장르',type:'tags'},
-      {key:'signatureSong',label:'대표곡'},{key:'sing',label:'노래 방송 빈도'}]});
+      {key:'dislikes',label:'싫어하는 것',type:'tags'},{key:'keywords',label:'방송 키워드',type:'tags',hint:'쉼표 또는 줄바꿈으로 구분해 주세요. 화면에는 #이 붙어 표시돼요.'},
+      {key:'genres',label:'노래 장르',type:'tags'},{key:'signatureSong',label:'대표곡'}]});
     if(page==='schedule'||page==='profile')groups.push({title:'방송 시간 안내',hint:'메인과 프로필·일정에 함께 표시되는 같은 값이에요.',fields:[{key:'broadcast.time',label:'방송 시간'},{key:'broadcast.restDays',label:'정기 휴방'}]},
       {title:'요일별 방송 안내',fields:['월','화','수','목','금','토','일'].map((day,index)=>({key:`broadcast.week.${index}`,label:day+'요일',placeholder:'오전 / 오후 8시 / 휴방'}))});
     if(page==='store')groups.push({title:'STORE 바로가기',fields:[{key:'links.store',label:'굿즈 스토어 주소',type:'url',wide:true,hint:'비우면 스토어 준비 중 화면이 나와요.'}]});
-    if(page==='song'||page==='profile')groups.push({title:'노래책 바로가기',fields:[{key:'links.songbook',label:'외부 노래책 주소',type:'url',wide:true}]});
+    if(page==='profile')groups.push({title:'노래책 바로가기',fields:[{key:'links.songbook',label:'외부 노래책 주소',type:'url',wide:true}]});
     const catalogue=C.entries().filter(entry=>cataloguePage(entry.key)===page);
     const sections=new Map();
     catalogue.forEach(entry=>{
@@ -570,7 +566,7 @@
       panel.append(E('h2','adm-section-title','복원할 JSON 확인'),E('p','adm-backup-file',file.name));
       const summary=E('div','adm-backup-summary');
       summary.append(E('span','adm-backup-chip','프로필 '+(inner.profile?'포함':'없음')));
-      collections.forEach(key=>summary.append(E('span','adm-backup-chip',configs[key].singular+' '+(Array.isArray(lists[key])?lists[key].length:0)+'개')));
+      collections.forEach(key=>summary.append(E('span','adm-backup-chip',(configs[key]?.singular || '노래')+' '+(Array.isArray(lists[key])?lists[key].length:0)+'개')));
       panel.append(summary,E('p','adm-field-hint','복원하면 서버에 저장된 내용을 선택한 파일로 바꿔요. 현재 저장본이 필요하면 먼저 JSON 백업을 내려받아 주세요.'));
       const actions=E('div','adm-form-actions');
       const apply=button('서버에 복원','adm-button adm-button-primary',async()=>{

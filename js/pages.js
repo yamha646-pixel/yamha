@@ -63,7 +63,8 @@
   function heading(title, subtitle) { return E('div',{class:'yp-section-heading'},[E('h2',{},title),subtitle?E('p',{},subtitle):'']); }
   function safeImages(images) { return Array.isArray(images) ? images.filter(v=>typeof v==='string'&&imageURL(v)) : []; }
   function gallery(images, captions=[]) {
-    return E('div',{class:'yp-image-gallery'},safeImages(images).map((src,i)=>{
+    const entries=Array.isArray(images)?images.map((src,i)=>({src,i})).filter(({src})=>typeof src==='string'&&imageURL(src)):[];
+    return E('div',{class:'yp-image-gallery'},entries.map(({src,i})=>{
       const label=captions[i]??copy('pages.galleryPhoto',{number:i+1});
       const b=button([image(src,label),E('span',{},[label,U.icon('expand')])],()=>U.dialog(label,E('div',{class:'yp-full-image'},image(src,label))),'yp-gallery-button');
       b.setAttribute('aria-label',copy('pages.galleryOpen',{label})); return b;
@@ -73,7 +74,7 @@
   async function profile(token) {
     const p=S.profile(); const rows=await S.list('timeline'); if(token!==epoch)return;
     const name=T(p.name),fan=T(p.fanName),english=T(p.englishName);
-    const basics=[['name',name],['english',english],['birthday',p.birthday],['debut',date(p.debutDate)],['fandom',fan],['agency',p.agency],['gender',p.gender]].map(([key,value])=>[copy('profile.fact.'+key),value]);
+    const basics=[['birthday',p.birthday],['debut',date(p.debutDate)],['fandom',fan],['agency',p.agency],['mbti',p.mbti],['age',p.age]].map(([key,value])=>[copy('profile.fact.'+key),value]);
     const photo=p.profileImage??(p.photos&&p.photos[0]&&p.photos[0].src)??'';
     const photoAlt=p.profileImage!=null?copy('profile.photoAltFallback'):(p.photos&&p.photos[0]&&p.photos[0].alt)??copy('profile.photoAltFallback');
     const chips=Array.isArray(p.broadcast&&p.broadcast.categories)?p.broadcast.categories:[];
@@ -87,13 +88,14 @@
     const likes=(Array.isArray(p.interests)?p.interests.join(separator()):T(p.interests))||noValue();
     const dislikes=(Array.isArray(p.dislikes)?p.dislikes.join(separator()):T(p.dislikes))||noValue();
     const broadcast=p.broadcast||{};
+    const keywords=(Array.isArray(p.keywords)?p.keywords:T(p.keywords).split(/[,\n]/)).map(value=>T(value).trim().replace(/^#+/, '')).filter(Boolean).map(value=>'#'+value).join(' ');
     const intro=p.intro===undefined?copy('profile.intro',{fanName:fan||copy('profile.introAudience')}):T(p.intro);
     const character=E('section',{class:'yp-character-note'},[E('div',{},[E('span',{class:'yp-kicker'},copy('profile.introKicker')),E('h2',{},copy('profile.introHeading')),intro?E('p',{},intro):'']),E('dl',{},[E('div',{},[E('dt',{},copy('profile.personalityLabel')),E('dd',{},T(p.personality)||noValue())]),E('div',{},[E('dt',{},copy('profile.catchphraseLabel')),E('dd',{},T(p.catchphrase)||noValue())])])]);
     const week=E('section',{class:'yp-week-section'},[heading(copy('profile.weekHeading'),[broadcast.time,broadcast.restDays].filter(Boolean).join(separator())),E('div',{class:'yp-week-strip'},Array.from({length:7},(_,i)=>copy('profile.weekdays').split('|')[i]??'').map((d,i)=>{const configured=Array.isArray(broadcast.week)?broadcast.week[i]:null;const hasConfigured=configured!==undefined&&configured!==null;const rest=hasConfigured?configured==='휴방':[1,2].includes(i);return E('div',{class:'yp-week-day'+(rest?' is-rest':'')},[E('span',{},d),E('strong',{},hasConfigured?T(configured):(rest?copy('profile.weekRest'):copy('profile.weekMorning'))),E('small',{},rest?copy('profile.weekRestNote'):copy('profile.weekOnNote'))]);})),E('a',{class:'yp-text-link',href:S.url('schedule/index.html')},[copy('profile.weekScheduleLink'),U.icon('arrow')])]);
     const notes=E('div',{class:'yp-notes'},[
       E('section',{class:'yp-note yp-note-green'},[E('span',{class:'yp-note-no'},copy('profile.likesKicker')),E('h3',{},copy('profile.likesHeading')),E('p',{},likes),E('p',{class:'yp-note-sub'},copy('profile.dislikesText',{dislikes}))]),
-      E('section',{class:'yp-note'},[E('span',{class:'yp-note-no'},copy('profile.broadcastKicker')),E('h3',{},T(broadcast.time)||copy('profile.broadcastTimeFallback')),E('p',{},T(broadcast.restDays)),E('p',{class:'yp-note-sub'},copy('profile.gamesText',{games:T(p.games)||noValue()})),E('a',{class:'yp-text-link',href:S.url('schedule/index.html')},[copy('profile.broadcastScheduleLink'),U.icon('arrow')])]),
-      E('section',{class:'yp-note'},[E('span',{class:'yp-note-no'},copy('profile.musicKicker')),E('h3',{},copy('profile.musicHeading')),E('p',{},(Array.isArray(p.genres)?p.genres.join(separator()):T(p.genres))||noValue()),E('p',{class:'yp-note-sub'},copy('profile.signatureSongText',{song:T(p.signatureSong)||noValue()})),E('p',{class:'yp-note-sub'},copy('profile.singingText',{frequency:T(p.sing)||noValue()})),external(copy('profile.songbookLink'),p.links&&p.links.songbook,'yp-text-link')||''])
+      E('section',{class:'yp-note'},[E('span',{class:'yp-note-no'},copy('profile.broadcastKicker')),E('h3',{},T(broadcast.time)||copy('profile.broadcastTimeFallback')),E('p',{},T(broadcast.restDays)),E('p',{class:'yp-note-sub'},copy('profile.keywordsText',{keywords:keywords||noValue()})),E('a',{class:'yp-text-link',href:S.url('schedule/index.html')},[copy('profile.broadcastScheduleLink'),U.icon('arrow')])]),
+      E('section',{class:'yp-note'},[E('span',{class:'yp-note-no'},copy('profile.musicKicker')),E('h3',{},copy('profile.musicHeading')),E('p',{},(Array.isArray(p.genres)?p.genres.join(separator()):T(p.genres))||noValue()),E('p',{class:'yp-note-sub'},copy('profile.signatureSongText',{song:T(p.signatureSong)||noValue()})),external(copy('profile.songbookLink'),p.links&&p.links.songbook,'yp-text-link')||''])
     ]);
     const timeline=rows.slice().sort((a,b)=>T(b.date).localeCompare(T(a.date))).map(r=>E('li',{},[
       E('time',{datetime:T(r.date)},date(r.date)),E('div',{},[E('h3',{},T(r.title)),r.body?textBody(r.body):'',r.image?gallery([r.image],[T(r.title)]):''])
@@ -108,7 +110,7 @@
   async function news(token) {
     const items=(await S.list('news')).filter(r=>r.published!==false).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||T(b.published_at).localeCompare(T(a.published_at)));
     if(token!==epoch)return;
-    const labels={NOTICE:copy('news.category.notice'),CONTENTS:copy('news.category.contents'),EVENT:copy('news.category.event')};
+    const labels={NOTICE:copy('news.category.notice'),CONTENTS:copy('news.category.contents'),EVENT:copy('news.category.event'),GOODS:copy('news.category.goods')};
     let results, total, tabs;
     function open(r) { U.dialog(r.title,E('article',{class:'yp-news-detail'},[E('div',{class:'yp-article-meta'},[E('span',{},labels[r.category]??copy('news.category.notice')),E('time',{},date(r.published_at))]),textBody(r.body),gallery(r.images)])); }
     function draw() {
@@ -119,7 +121,7 @@
         const b=button([E('div',{class:'yp-news-cover'},imgs.length?image(imgs[0],T(r.title)):E('div',{class:'yp-news-letter'},[U.icon('envelope'),E('span',{},copy('news.letterCaption'))])),E('div',{class:'yp-news-copy'},[E('div',{class:'yp-news-meta'},[E('span',{class:'yp-category'},labels[r.category]??copy('news.category.notice')),r.pinned?E('span',{class:'yp-pinned'},copy('news.pinned')):'',E('time',{},date(r.published_at))]),E('h2',{},T(r.title)),E('p',{},T(r.body).replace(/^#{1,3}\s*/gm,'').replace(/^-\s*/gm,'').slice(0,130)),E('span',{class:'yp-read-more'},[copy('news.readMore'),U.icon('arrow')])])],()=>open(r),'yp-news-item'); return b;
       }):[empty(copy(items.length?'news.searchEmptyTitle':'news.emptyTitle'),copy(items.length?'news.searchEmptyBody':'news.emptyBody'),'news.emptyImage')]));
     }
-    tabs=filters(['ALL','NOTICE','CONTENTS','EVENT'].map(key=>[key,copy('news.category.'+key.toLowerCase())]),state.category,key=>{state.category=key;draw();});
+    tabs=filters(['ALL','NOTICE','CONTENTS','EVENT','GOODS'].map(key=>[key,copy('news.category.'+key.toLowerCase())]),state.category,key=>{state.category=key;draw();});
     results=E('div',{class:'yp-news-list'}); total=E('span',{class:'yp-result-count','aria-live':'polite'});
     startPage([E('div',{class:'yp-list-tools'},[tabs,search(copy('news.searchPlaceholder'),draw)]),total,results]); draw();
   }
@@ -140,10 +142,21 @@
       const prose=textBody(row.body);
       if(row.id==='creation'&&safeImages(row.images).length){
         const imageLabels=['guide.imageOriginalLabel','guide.imageJacketLabel','guide.imageFanLabel'].map(key=>copy(key));
-        const collection=gallery(row.images,imageLabels); collection.classList.add('yp-design-gallery');
-        const headings=Array.from(prose.querySelectorAll('h2,h3'));
-        const firstRule=headings.find(h=>h.textContent.trim()==='금지사항');
-        if(firstRule)firstRule.before(collection);else prose.prepend(collection);
+        const headings=Array.from(prose.querySelectorAll('h2,h3,h4'));
+        const originalHeading=headings.find(h=>/오리지[널날]/.test(h.textContent)&&/헤어|의상|삼면도/.test(h.textContent));
+        const fanHeading=headings.find(h=>/마냥단\s*디자인/.test(h.textContent));
+        const addSectionImages=(images,captions,section,fallback)=>{
+          if(!safeImages(images).length)return;
+          const collection=gallery(images,captions);collection.classList.add('yp-design-gallery');
+          if(!section){fallback(collection);return;}
+          let next=section.nextElementSibling;
+          const rank=Number(section.tagName.slice(1));
+          while(next&&(!/^H[1-6]$/.test(next.tagName)||Number(next.tagName.slice(1))>rank))next=next.nextElementSibling;
+          if(next)next.before(collection);else section.parentElement.append(collection);
+        };
+        addSectionImages(row.images.slice(0,2),imageLabels.slice(0,2),originalHeading,collection=>prose.prepend(collection));
+        addSectionImages(row.images.slice(2,3),imageLabels.slice(2,3),fanHeading,collection=>prose.append(collection));
+        if(row.images.length>3)prose.append(gallery(row.images.slice(3)));
       }else if(safeImages(row.images).length)prose.append(gallery(row.images));
       article.append(prose,E('div',{class:'yp-guide-ending'},[decoration('guide.endingSeal','yp-ending-seal'),E('p',{},copy('guide.endingThanks')),E('span',{},copy('guide.endingSignature',{displayName:T(p.englishName||p.name)}))]));
     }

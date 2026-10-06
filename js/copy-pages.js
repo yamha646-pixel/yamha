@@ -76,16 +76,6 @@
     "value": "데뷔부터",
     "type": "text"
   },
-  "profile.fact.name": {
-    "label": "기본 정보 · 이름",
-    "value": "이름",
-    "type": "text"
-  },
-  "profile.fact.english": {
-    "label": "기본 정보 · 영문",
-    "value": "영문",
-    "type": "text"
-  },
   "profile.fact.birthday": {
     "label": "기본 정보 · 생일",
     "value": "생일",
@@ -106,9 +96,14 @@
     "value": "소속",
     "type": "text"
   },
-  "profile.fact.gender": {
-    "label": "기본 정보 · 성별",
-    "value": "성별",
+  "profile.fact.mbti": {
+    "label": "기본 정보 · MBTI",
+    "value": "MBTI",
+    "type": "text"
+  },
+  "profile.fact.age": {
+    "label": "기본 정보 · 나이",
+    "value": "나이",
     "type": "text"
   },
   "profile.photoAltFallback": {
@@ -234,9 +229,9 @@
     "value": "방송 시간 미정",
     "type": "text"
   },
-  "profile.gamesText": {
-    "label": "게임 안내",
-    "value": "플레이하는 게임 · {games}",
+  "profile.keywordsText": {
+    "label": "방송 키워드 안내",
+    "value": "키워드 · {keywords}",
     "type": "text"
   },
   "profile.broadcastScheduleLink": {
@@ -257,11 +252,6 @@
   "profile.signatureSongText": {
     "label": "시그니처 곡 안내",
     "value": "시그니처 곡 · {song}",
-    "type": "text"
-  },
-  "profile.singingText": {
-    "label": "노래 방송 안내",
-    "value": "노래 방송 · {frequency}",
     "type": "text"
   },
   "profile.songbookLink": {
@@ -344,6 +334,11 @@
   "news.category.event": {
     "label": "분류 이름 · EVENT",
     "value": "EVENT",
+    "type": "text"
+  },
+  "news.category.goods": {
+    "label": "분류 이름 · 굿즈",
+    "value": "굿즈",
     "type": "text"
   },
   "news.resultCount": {
