@@ -114,3 +114,26 @@ select.adm-input{padding-right:25px}
 .adm-login-form>.adm-label{margin-top:18px}.adm-login-form>.adm-button{width:100%;margin-top:24px}
 .adm-login-view{display:block;margin-top:23px;text-align:center;color:var(--pink-ink,#9b4465);font-size:12px;text-underline-offset:4px}
 @media(max-width:600px){.adm-login{padding:26px 22px;margin:12px auto 40px}.adm-login .adm-title{font-size:29px}.adm-header-actions{gap:6px}.adm-header-actions>.adm-button{font-size:12px;min-height:36px;padding:7px 11px}}
+
+/* The admin owns its layout; visitor navigation is intentionally absent. */
+body.admin-page{display:block;min-height:100vh;margin:0;padding:0;background:#fff8fa}
+body.admin-page>.main{width:min(1440px,100%);max-width:none;margin:0 auto;padding:35px 36px 70px;min-width:0}
+body.admin-page .adm-root{max-width:none}
+.adm-page-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px}
+.adm-page-bar .adm-panel-description{margin:0}
+.adm-page-settings{margin-bottom:34px}
+.adm-page-settings .adm-field-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.adm-page-settings .adm-field-wide{grid-column:span 3}
+.adm-page-settings .adm-form-actions{position:sticky;bottom:12px;z-index:4;background:#fffefa;padding:14px;border:1px solid #ecd6dc;border-radius:12px;box-shadow:0 4px 16px #76516012}
+.adm-group-hint{font-size:12px;line-height:1.8;color:#8b7580;margin:-12px 0 18px}
+.adm-reset{display:block;border:0;background:transparent;color:#9b4465;padding:8px 0 0;font:12px/1.6 var(--body,Noto,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.adm-field[hidden],.adm-field-group[hidden]{display:none!important}
+.adm-field-group>summary{cursor:pointer}
+.adm-field-group[open]>summary{margin-bottom:20px}
+.adm-editor-heading>.adm-search{margin:18px 0 0;max-width:480px}
+.adm-subtabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.adm-subtabs .is-active{background:#ffdfeb;border-color:#d99bb2;color:#8d3c5c}
+.adm-page-collections{padding-top:22px;border-top:1px solid #ecd6dc}
+.adm-private-upload{margin-top:9px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:1000px){.adm-page-settings .adm-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.adm-page-settings .adm-field-wide{grid-column:span 2}}
+@media(max-width:600px){body.admin-page>.main{padding:20px 14px 45px}.adm-page-settings .adm-field-grid{grid-template-columns:1fr}.adm-page-settings .adm-field-wide{grid-column:auto}.adm-page-bar{align-items:flex-start;flex-direction:column}.adm-tabs{position:static}.adm-page-settings .adm-form-actions{bottom:5px}.adm-group-hint{margin-top:-10px}.adm-page-settings{margin-bottom:25px}}

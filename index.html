@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fff6f8">
-  <meta name="description" content="마냥단 앞으로, 얌하의 작은 편지가 도착했어요. 하늘다람쥐 편지배달부 얌하의 홈페이지입니다.">
-  <title>얌하 YAMHA · 마냥단 앞으로</title>
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <meta data-y-attr="content:home.metaDescription" name="description" content="마냥단 앞으로, 얌하의 작은 편지가 도착했어요. 하늘다람쥐 편지배달부 얌하의 홈페이지입니다.">
+  <title data-y-text="home.browserTitle">얌하 YAMHA · 마냥단 앞으로</title>
+  <link rel="icon" data-y-attr="href:shell.favicon" href="assets/favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/site.css">
   <script defer src="content.js"></script>
@@ -15,11 +15,15 @@
 <script defer src="js/config.js"></script>
 <script defer src="js/data.js"></script>
   <script defer src="js/ui.js"></script>
+<script defer src="js/editable-content.js"></script>
+<script defer src="js/copy-shell.js"></script>
+<script defer src="js/copy-pages.js"></script>
+<script defer src="js/copy-features.js"></script>
   <script defer src="js/site.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body data-page="home">
-  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <a data-y-text="shell.skip" class="skip-link" href="#main">본문으로 건너뛰기</a>
   <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/></symbol>
     <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></symbol>
@@ -38,87 +42,82 @@
     <symbol id="i-acorn" viewBox="0 0 80 92"><path d="M40 23c0-12 8-17 17-18" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M13 43c0 28 18 39 27 43 9-4 27-15 27-43Z" fill="#ffe7c6" stroke="currentColor" stroke-width="3"/><path d="M7 44c1-31 65-31 66 0 0 9-66 9-66 0Z" fill="#caff8a" stroke="currentColor" stroke-width="3"/><path d="m18 27 6 13m7-18 5 20m11-20-1 20m15-16-5 15" fill="none" stroke="currentColor" stroke-width="2"/><path d="M30 61h1m18 0h1m-13 7q4 3 7 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
   </svg>
 
-<aside class="sidebar" aria-label="사이트 메뉴">
-    <a class="side-brand" href="index.html" aria-label="얌하 메인으로"><span class="brand-seal brand-avatar"><img src="assets/channel-avatar.jpg" width="1018" height="1018" alt=""></span><span>YAMHA<span class="side-brand-sub">POST OFFICE</span></span></a>
-    <nav class="navigation" aria-label="주 메뉴"><a class="nav-item is-current" href="index.html" aria-current="page"><svg class="icon"><use href="#i-home"/></svg><span>메인<small>HOME</small></span></a><a class="nav-item" href="profile/index.html"><svg class="icon"><use href="#i-user"/></svg><span>프로필<small>PROFILE</small></span></a><a class="nav-item" href="schedule/index.html"><svg class="icon"><use href="#i-calendar"/></svg><span>일정<small>SCHEDULE</small></span></a><a class="nav-item" href="news/index.html"><svg class="icon"><use href="#i-news"/></svg><span>공지<small>NEWS</small></span></a><a class="nav-item" href="store/index.html" data-link="store"><svg class="icon"><use href="#i-store"/></svg><span>스토어<small>STORE</small></span></a><a class="nav-item" href="reward/index.html"><svg class="icon"><use href="#i-gift"/></svg><span>리워드<small>REWARD</small></span></a><a class="nav-item" href="debt/index.html"><svg class="icon"><use href="#i-heart"/></svg><span>업보<small>MEMORY</small></span></a><a class="nav-item" href="guide/index.html"><svg class="icon"><use href="#i-envelope"/></svg><span>안내<small>GUIDE</small></span></a></nav>
-    <div class="sidebar-bottom"><span class="tiny-heart">♡</span> 언제나 마냥단 편<span>WITH LOVE, YAMHA</span></div></aside>
+<aside class="sidebar" aria-label="사이트 메뉴" data-y-attr="aria-label:shell.sidebarAria">
+    <a class="side-brand" href="index.html" aria-label="얌하 메인으로" data-y-attr="aria-label:shell.homeAria"><span class="brand-seal brand-avatar"><img src="assets/channel-avatar.jpg" width="1018" height="1018" alt=""></span><span><span data-y-text="shell.brandName">YAMHA</span><span class="side-brand-sub" data-y-text="shell.brandSub">POST OFFICE</span></span></a>
+    <nav class="navigation" aria-label="주 메뉴" data-y-attr="aria-label:shell.navAria"><a class="nav-item is-current" href="index.html" aria-current="page"><svg data-y-art="shell.art.home" class="icon"><use href="#i-home"/></svg><span><span data-y-text="shell.nav.home">메인</span><small data-y-text="shell.nav.homeSub">HOME</small></span></a><a class="nav-item" href="profile/index.html"><svg data-y-art="shell.art.user" class="icon"><use href="#i-user"/></svg><span><span data-y-text="shell.nav.profile">프로필</span><small data-y-text="shell.nav.profileSub">PROFILE</small></span></a><a class="nav-item" href="schedule/index.html"><svg data-y-art="shell.art.calendar" class="icon"><use href="#i-calendar"/></svg><span><span data-y-text="shell.nav.schedule">일정</span><small data-y-text="shell.nav.scheduleSub">SCHEDULE</small></span></a><a class="nav-item" href="news/index.html"><svg data-y-art="shell.art.news" class="icon"><use href="#i-news"/></svg><span><span data-y-text="shell.nav.news">공지</span><small data-y-text="shell.nav.newsSub">NEWS</small></span></a><a class="nav-item" href="store/index.html" data-link="store"><svg data-y-art="shell.art.store" class="icon"><use href="#i-store"/></svg><span><span data-y-text="shell.nav.store">스토어</span><small data-y-text="shell.nav.storeSub">STORE</small></span></a><a class="nav-item" href="reward/index.html"><svg data-y-art="shell.art.gift" class="icon"><use href="#i-gift"/></svg><span><span data-y-text="shell.nav.reward">리워드</span><small data-y-text="shell.nav.rewardSub">REWARD</small></span></a><a class="nav-item" href="debt/index.html"><svg data-y-art="shell.art.heart" class="icon"><use href="#i-heart"/></svg><span><span data-y-text="shell.nav.debt">업보</span><small data-y-text="shell.nav.debtSub">MEMORY</small></span></a><a class="nav-item" href="guide/index.html"><svg data-y-art="shell.art.envelope" class="icon"><use href="#i-envelope"/></svg><span><span data-y-text="shell.nav.guide">안내</span><small data-y-text="shell.nav.guideSub">GUIDE</small></span></a></nav>
+    <div class="sidebar-bottom"><span class="tiny-heart" data-y-text="shell.sideHeart">♡</span><span data-y-text="shell.sideMessage">언제나 마냥단 편</span><span data-y-text="shell.sideSign">WITH LOVE, YAMHA</span></div></aside>
 
   <main id="main" class="main">
     <section class="scrapbook" aria-labelledby="main-title">
       <div class="paper-margin" aria-hidden="true"></div>
       <div class="intro">
-        <p class="intro-eyebrow">하늘다람쥐 편지배달부</p>
-        <h1 id="main-title"><span class="logo-word">Yamha</span><span class="logo-heart" aria-hidden="true">♡</span><span class="sr-only">얌하</span></h1>
-        <p class="intro-caption">마냥단 앞으로, <strong>얌하가 도착했어요!</strong></p>
+        <p class="intro-eyebrow" data-y-text="home.eyebrow">하늘다람쥐 편지배달부</p>
+        <h1 id="main-title"><span class="logo-word" data-y-text="home.wordmark">Yamha</span><span class="logo-heart" aria-hidden="true" data-y-text="home.logoHeart">♡</span><span class="sr-only" data-y-text="home.nameAria">얌하</span></h1>
+        <p class="intro-caption"><span data-y-text="home.introTo">마냥단 앞으로, </span><strong data-y-text="home.introArrival">얌하가 도착했어요!</strong></p>
       </div>
 
-      <div class="airmail-note" aria-hidden="true"><span>TO. 마냥단</span><span>오늘도 함께해 주시지야 ♡</span><svg class="icon"><use href="#i-heart"/></svg></div>
+      <div class="airmail-note" aria-hidden="true"><span data-y-text="home.airmailTo">TO. 마냥단</span><span data-y-text="home.airmailMessage">오늘도 함께해 주시지야 ♡</span><svg data-y-art="shell.art.heart" class="icon"><use href="#i-heart"/></svg></div>
       <div class="paper-patch patch-lime" aria-hidden="true"></div>
       <div class="paper-patch patch-pink" aria-hidden="true"></div>
-      <div class="postmark" aria-hidden="true"><span>YAMHA POST</span><b>02.22</b><small>SPECIAL DELIVERY</small></div>
+      <div class="postmark" aria-hidden="true"><span data-y-text="home.postmarkName">YAMHA POST</span><b data-y-text="home.postmarkDate">02.22</b><small data-y-text="home.postmarkSmall">SPECIAL DELIVERY</small></div>
 
       <figure class="photo photo-1">
         <span class="tape tape-pink" aria-hidden="true"></span>
         <button type="button" data-photo="1" aria-label="브이 포즈의 얌하 사진 크게 보기"><img src="assets/photo-01.png" width="1280" height="720" alt="날개 머리핀을 달고 브이 포즈를 하는 분홍 머리의 얌하" fetchpriority="high" draggable="false"></button>
-        <figcaption><span>dear. 마냥단</span><svg class="icon"><use href="#i-heart"/></svg></figcaption>
+        <figcaption><span data-y-text="home.photoCaption1">dear. 마냥단</span><svg data-y-art="shell.art.heart" class="icon"><use href="#i-heart"/></svg></figcaption>
       </figure>
       <figure class="photo photo-2">
         <span class="paperclip" aria-hidden="true"></span>
         <button type="button" data-photo="2" aria-label="웃고 있는 얌하 사진 크게 보기"><img src="assets/photo-02.png" width="1920" height="1018" alt="수영장에서 눈을 감고 활짝 웃는 얌하" draggable="false"></button>
-        <figcaption>little happy moments</figcaption>
+        <figcaption data-y-text="home.photoCaption2">little happy moments</figcaption>
       </figure>
       <figure class="photo photo-3">
         <button type="button" data-photo="3" aria-label="인사하는 얌하 사진 크게 보기"><img src="assets/photo-03.png" width="3840" height="2160" alt="커다란 다람쥐 꼬리와 함께 손을 이마에 올려 인사하는 얌하" draggable="false"></button>
-        <figcaption><span>a letter for you</span><span class="hand-heart">♡</span></figcaption>
+        <figcaption><span data-y-text="home.photoCaption3">a letter for you</span><span class="hand-heart" data-y-text="home.photoHeart3">♡</span></figcaption>
       </figure>
       <figure class="photo photo-4">
         <span class="tape tape-lime" aria-hidden="true"></span>
         <button type="button" data-photo="4" aria-label="초록 눈의 얌하 사진 크게 보기"><img src="assets/photo-04.png" width="1920" height="1018" alt="분홍 수영복을 입고 초록 눈으로 바라보는 하늘다람쥐 얌하" draggable="false"></button>
-        <figcaption><span>from. YAMHA</span><span class="hand-heart">♡</span></figcaption>
+        <figcaption><span data-y-text="home.photoCaption4">from. YAMHA</span><span class="hand-heart" data-y-text="home.photoHeart4">♡</span></figcaption>
       </figure>
       <figure class="photo photo-5">
         <button type="button" data-photo="5" aria-label="햇살 속 얌하 사진 크게 보기"><img src="assets/photo-05.png" width="1920" height="1080" alt="햇살 아래 손을 이마에 올리고 미소 짓는 얌하" draggable="false"></button>
-        <figcaption>with a little love.</figcaption>
+        <figcaption data-y-text="home.photoCaption5">with a little love.</figcaption>
       </figure>
 
-      <div class="word-stickers" aria-hidden="true"><span>달달한 하루</span><span>배달 왔어요!</span></div>
-      <div class="wing-sticker" aria-hidden="true"><svg class="wing"><use href="#i-wing"/></svg><span>♡</span><svg class="wing"><use href="#i-wing"/></svg></div>
-      <div class="acorn-sticker" aria-hidden="true"><svg><use href="#i-acorn"/></svg><span>마냥단 전용 ♡</span></div>
-      <div class="little-sparkles" aria-hidden="true"><span>✦</span><span>+</span><span>✧</span><span>+</span></div>
-      <div class="stamp-sticker" aria-hidden="true"><div><svg class="icon"><use href="#i-envelope"/></svg><strong>LOVE MAIL</strong><span>YAMHA · 0406</span></div></div>
-      <div class="bottom-note" aria-hidden="true">a small letter, a lovely day <span>♡</span></div>
+      <div class="word-stickers" aria-hidden="true"><span data-y-text="home.wordTop">달달한 하루</span><span data-y-text="home.wordBottom">배달 왔어요!</span></div>
+      <div class="wing-sticker" aria-hidden="true"><svg data-y-art="home.art.wing" class="wing"><use href="#i-wing"/></svg><span data-y-text="home.wingHeart">♡</span><svg data-y-art="home.art.wing" class="wing"><use href="#i-wing"/></svg></div>
+      <div class="acorn-sticker" aria-hidden="true"><svg data-y-art="home.art.acorn"><use href="#i-acorn"/></svg><span data-y-text="home.acornCaption">마냥단 전용 ♡</span></div>
+      <div class="little-sparkles" aria-hidden="true"><span data-y-text="home.sparkle1">✦</span><span data-y-text="home.sparkle2">+</span><span data-y-text="home.sparkle3">✧</span><span data-y-text="home.sparkle4">+</span></div>
+      <div class="stamp-sticker" aria-hidden="true"><div><svg data-y-art="shell.art.envelope" class="icon"><use href="#i-envelope"/></svg><strong data-y-text="home.stampTitle">LOVE MAIL</strong><span data-y-text="home.stampSignature">YAMHA · 0406</span></div></div>
+      <div class="bottom-note" aria-hidden="true"><span data-y-text="home.bottomNote">a small letter, a lovely day </span><span data-y-text="home.bottomHeart">♡</span></div>
     </section>
 
-    <section class="delivery-strip" aria-label="방송과 소식">
+    <section class="delivery-strip" aria-label="방송과 소식" data-y-attr="aria-label:home.deliveryAria">
       <div class="broadcast-note">
-        <span class="strip-icon"><svg class="icon"><use href="#i-calendar"/></svg></span>
-        <div><span class="eyebrow">ON A LOVELY MORNING</span><p><strong>오전에 만나요</strong><span>화 · 수 고정 휴방</span></p></div>
-        <a class="round-link" href="schedule/index.html" aria-label="방송 일정 보기"><svg class="icon"><use href="#i-arrow"/></svg></a>
+        <span class="strip-icon"><svg data-y-art="shell.art.calendar" class="icon"><use href="#i-calendar"/></svg></span>
+        <div><span class="eyebrow" data-y-text="home.broadcastKicker">ON A LOVELY MORNING</span><p><strong>오전에 만나요</strong><span>화 · 수 고정 휴방</span></p></div>
+        <a class="round-link" href="schedule/index.html" aria-label="방송 일정 보기" data-y-attr="aria-label:home.scheduleAria"><svg data-y-art="shell.art.arrow" class="icon"><use href="#i-arrow"/></svg></a>
       </div>
-      <a class="channel-link" data-link="channel" href="https://chzzk.naver.com/6a5ac2954c2dd7d04caa01a5bd864f24" target="_blank" rel="noopener noreferrer"><span class="channel-symbol" aria-hidden="true">↯</span><span>얌하 만나러 가기<small>CHZZK CHANNEL</small></span><svg class="icon"><use href="#i-external"/></svg></a>
-      <a class="reward-link" href="reward/index.html?tab=photos"><span class="reward-envelope"><svg class="icon"><use href="#i-envelope"/></svg><span>♡</span></span><span><small>우리의 순간을 차곡차곡</small><strong>방셀 보관함</strong></span><svg class="icon arrow"><use href="#i-arrow"/></svg></a>
+      <a class="channel-link" data-link="channel" href="https://chzzk.naver.com/6a5ac2954c2dd7d04caa01a5bd864f24" target="_blank" rel="noopener noreferrer"><span class="channel-symbol" aria-hidden="true" data-y-text="home.channelSymbol">↯</span><span><span data-y-text="home.channelTitle">얌하 만나러 가기</span><small data-y-text="home.channelSubtitle">CHZZK CHANNEL</small></span><svg data-y-art="shell.art.external" class="icon"><use href="#i-external"/></svg></a>
+      <a class="reward-link" href="reward/index.html?tab=photos"><span class="reward-envelope"><svg data-y-art="shell.art.envelope" class="icon"><use href="#i-envelope"/></svg><span data-y-text="home.rewardHeart">♡</span></span><span><small data-y-text="home.rewardSubtitle">우리의 순간을 차곡차곡</small><strong data-y-text="home.rewardTitle">방셀 보관함</strong></span><svg data-y-art="shell.art.arrow" class="icon arrow"><use href="#i-arrow"/></svg></a>
     </section>
 
     <footer class="footer">
-      <p>늘 마냥단에게, <strong>얌하로부터 ♡</strong><span class="debut-counter" data-debut-days></span></p>
-      <nav class="social-links" aria-label="얌하 외부 채널">
-        <a data-link="cafe" href="https://cafe.naver.com/yamha6" target="_blank" rel="noopener noreferrer">팬카페<svg class="icon"><use href="#i-external"/></svg></a>
-        <a data-link="youtube" href="https://www.youtube.com/@yamha46" target="_blank" rel="noopener noreferrer">YouTube<svg class="icon"><use href="#i-external"/></svg></a>
-        <a data-link="x" href="https://x.com/yamha0220" target="_blank" rel="noopener noreferrer">X<svg class="icon"><use href="#i-external"/></svg></a>
-        <a data-link="songbook" href="https://www.songstudio.live/songbook/platform/@%EC%96%8C%ED%95%98" target="_blank" rel="noopener noreferrer">노래책<svg class="icon"><use href="#i-music"/></svg></a>
-        <a class="admin-entry" href="admin/index.html">관리자</a>
+      <p><span data-y-text="shell.footerTo">늘 마냥단에게, </span><strong data-y-text="shell.footerFrom">얌하로부터 ♡</strong><span class="debut-counter" data-debut-days></span></p>
+      <nav class="social-links" aria-label="얌하 외부 채널" data-y-attr="aria-label:shell.socialAria">
+        <a data-link="cafe" href="https://cafe.naver.com/yamha6" target="_blank" rel="noopener noreferrer"><span data-y-text="shell.socialCafe">팬카페</span><svg data-y-art="shell.art.external" class="icon"><use href="#i-external"/></svg></a>
+        <a data-link="youtube" href="https://www.youtube.com/@yamha46" target="_blank" rel="noopener noreferrer"><span data-y-text="shell.socialYoutube">YouTube</span><svg data-y-art="shell.art.external" class="icon"><use href="#i-external"/></svg></a>
+        <a data-link="x" href="https://x.com/yamha0220" target="_blank" rel="noopener noreferrer"><span data-y-text="shell.socialX">X</span><svg data-y-art="shell.art.external" class="icon"><use href="#i-external"/></svg></a>
+        <a data-link="songbook" href="https://www.songstudio.live/songbook/platform/@%EC%96%8C%ED%95%98" target="_blank" rel="noopener noreferrer"><span data-y-text="shell.socialSongbook">노래책</span><svg data-y-art="shell.art.music" class="icon"><use href="#i-music"/></svg></a>
+        <a class="admin-entry" href="admin/index.html"><span data-y-text="shell.adminLink">관리자</span></a>
       </nav>
     </footer>
   </main>
-
-  <dialog class="info-dialog" id="info-dialog" aria-labelledby="info-title">
-    <div class="dialog-top"><span class="dialog-eyebrow">A LETTER FROM YAMHA</span><button class="dialog-close" type="button" data-close-dialog aria-label="안내 닫기"><svg class="icon"><use href="#i-close"/></svg></button></div>
-    <h2 id="info-title"></h2><div id="info-body"></div><div class="dialog-sign">with love, Yamha ♡</div>
-  </dialog>
-  <dialog class="photo-dialog" id="photo-dialog" aria-label="얌하 사진 원본 보기">
-    <div class="photo-toolbar"><span>얌하의 작은 기록 <span id="photo-count"></span></span><button class="dialog-close" type="button" data-close-dialog aria-label="사진 닫기"><svg class="icon"><use href="#i-close"/></svg></button></div>
+  <dialog class="photo-dialog" id="photo-dialog" aria-label="얌하 사진 원본 보기" data-y-attr="aria-label:home.photoDialogAria">
+    <div class="photo-toolbar"><span><span data-y-text="home.photoHeading">얌하의 작은 기록 </span><span id="photo-count"></span></span><button class="dialog-close" type="button" data-close-dialog aria-label="사진 닫기" data-y-attr="aria-label:home.photoClose"><svg data-y-art="shell.art.close" class="icon"><use href="#i-close"/></svg></button></div>
     <img id="photo-full" alt="">
-    <div class="photo-controls"><button type="button" id="photo-prev" aria-label="이전 사진"><svg class="icon"><use href="#i-arrow"/></svg></button><span>WITH LOVE, YAMHA</span><button type="button" id="photo-next" aria-label="다음 사진"><svg class="icon"><use href="#i-arrow"/></svg></button></div>
+    <div class="photo-controls"><button type="button" id="photo-prev" aria-label="이전 사진" data-y-attr="aria-label:home.photoPrevious"><svg data-y-art="shell.art.arrow" class="icon"><use href="#i-arrow"/></svg></button><span data-y-text="home.photoSign">WITH LOVE, YAMHA</span><button type="button" id="photo-next" aria-label="다음 사진" data-y-attr="aria-label:home.photoNext"><svg data-y-art="shell.art.arrow" class="icon"><use href="#i-arrow"/></svg></button></div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>

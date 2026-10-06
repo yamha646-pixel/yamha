@@ -133,6 +133,13 @@
     mode:'supabase',url:path=>new URL(path,base).href,
     profile:()=>merge(window.YAMHA_DATA||{},state.profile),
     isAdmin:()=>admin,authState,signIn,signOut,
+    getAccessToken:async()=>{
+      const epoch=await requireAdmin();
+      const {data,error}=await requireClient().auth.getSession();
+      sameAuthorization(epoch);
+      if(error||!data?.session?.access_token)throw new Error('관리자 로그인을 다시 확인해 주세요.');
+      return data.session.access_token;
+    },
     onAuthChange:fn=>{authListeners.add(fn);return()=>authListeners.delete(fn);},
     storageError:()=>connectionError,
     onChange:fn=>{window.addEventListener('yamha-data-change',fn);return()=>window.removeEventListener('yamha-data-change',fn);},

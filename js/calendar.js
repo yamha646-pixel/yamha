@@ -4,6 +4,8 @@
 
   const DAY = 86400000;
   const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+  const copy=(key,fallback,vars={})=>root.YamhaContent?root.YamhaContent.text(key,vars):fallback.replace(/\{(\w+)\}/g,(all,name)=>Object.prototype.hasOwnProperty.call(vars,name)?String(vars[name]??''):all);
+  const defaultType=()=>copy('calendar.defaultType','방송');
   const palette = {
     pink: '#ffd9e5', lime: '#def4bd', green: '#def4bd', blue: '#dcecfb',
     yellow: '#fff0b8', orange: '#ffe0be', purple: '#e9def8', red: '#ffd6d4',
@@ -108,7 +110,11 @@
     return linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722 > .179 ? '#372c34' : '#ffffff';
   }
   function eventLabel(row) {
-    return `${row.date}${endDate(row) !== row.date ? ' ~ ' + endDate(row) : ''} · ${row.type || '방송'} · ${row.time ? row.time + ' ' : ''}${row.title || row.type || '방송'}${row.title2 || row.time2 || row.type2 ? ' / 2부 ' + [row.time2, row.title2, row.type2].filter(Boolean).join(' ') : ''}`;
+    return copy('calendar.eventLabel','{range} · {type} · {time}{title}{part2}',{
+      range:row.date+(endDate(row)!==row.date?' ~ '+endDate(row):''),type:row.type||defaultType(),
+      time:row.time?row.time+' ':'',title:row.title||row.type||defaultType(),
+      part2:row.title2||row.time2||row.type2?copy('calendar.part2Label',' / 2부 {details}',{details:[row.time2,row.title2,row.type2].filter(Boolean).join(' ')}):''
+    });
   }
 
   function mount(host, options) {
@@ -123,7 +129,7 @@
     let rows = Array.isArray(options.events) ? options.events.slice() : [];
     let destroyed = false;
     const shell = create(doc, 'section', 'calendar');
-    shell.setAttribute('aria-label', options.editable ? '일정 편집 달력' : '방송 일정 달력');
+    shell.setAttribute('aria-label', options.editable ? '일정 편집 달력' : copy('calendar.label','방송 일정 달력'));
     host.replaceChildren(shell);
     let detailSource = null;
 
@@ -148,14 +154,14 @@
       const row = detailSource;
       const detail = create(doc, 'section', 'calendar-detail');
       detail.tabIndex = -1;
-      detail.setAttribute('aria-label', '일정 상세');
-      const close = create(doc, 'button', 'calendar-detail-close', '닫기 ×');
+      detail.setAttribute('aria-label', copy('calendar.detailLabel','일정 상세'));
+      const close = create(doc, 'button', 'calendar-detail-close', copy('calendar.close','닫기 ×'));
       close.type = 'button'; close.dataset.calendarAction = 'close-detail';
       detail.append(close, create(doc, 'p', 'calendar-detail-date', row.date + (endDate(row) !== row.date ? ' ~ ' + endDate(row) : '')),
-        create(doc, 'h3', 'calendar-detail-title', row.title || row.type || '방송'),
-        create(doc, 'p', 'calendar-detail-meta', [row.type || '방송', row.time].filter(Boolean).join(' · ')));
+        create(doc, 'h3', 'calendar-detail-title', row.title || row.type || defaultType()),
+        create(doc, 'p', 'calendar-detail-meta', [row.type || defaultType(), row.time].filter(Boolean).join(' · ')));
       if (row.title2 || row.time2 || row.type2) {
-        detail.append(create(doc, 'p', 'calendar-detail-part', '2부 · ' + [row.time2, row.title2, row.type2].filter(Boolean).join(' · ')));
+        detail.append(create(doc, 'p', 'calendar-detail-part', copy('calendar.part2Detail','2부 · {details}',{details:[row.time2,row.title2,row.type2].filter(Boolean).join(' · ')})));
       }
       if (row.description) detail.append(create(doc, 'p', 'calendar-detail-description', row.description));
       shell.append(detail);
@@ -164,11 +170,12 @@
     function render() {
       const layout = layoutMonth(year, month, rows), today = todayKST();
       shell.replaceChildren();
+      shell.setAttribute('aria-label',options.editable?'일정 편집 달력':copy('calendar.label','방송 일정 달력'));
       const toolbar = create(doc, 'div', 'calendar-toolbar');
-      const title = create(doc, 'h2', 'calendar-month', `${year}년 ${month + 1}월`);
+      const title = create(doc, 'h2', 'calendar-month', copy('calendar.month','{year}년 {month}월',{year,month:month+1}));
       title.id = id + '-month'; title.setAttribute('aria-live', 'polite');
       const controls = create(doc, 'div', 'calendar-controls');
-      [['prev', '‹', '이전 달'], ['today', '오늘', '이번 달로 이동'], ['next', '›', '다음 달']].forEach(([action, text, label]) => {
+      [['prev',copy('calendar.prevSymbol','‹'),copy('calendar.prev','이전 달')],['today',copy('calendar.today','오늘'),copy('calendar.todayLabel','이번 달로 이동')],['next',copy('calendar.nextSymbol','›'),copy('calendar.next','다음 달')]].forEach(([action, text, label]) => {
         const button = create(doc, 'button', 'calendar-nav calendar-nav-' + action, text);
         button.type = 'button'; button.dataset.calendarAction = action; button.setAttribute('aria-label', label);
         button.disabled = (action === 'prev' && year === 1 && month === 0) || (action === 'next' && year === 9999 && month === 11);
@@ -177,7 +184,7 @@
       toolbar.append(title, controls); shell.append(toolbar);
       const grid = create(doc, 'div', 'calendar-grid'); grid.setAttribute('aria-labelledby', title.id);
       const labels = create(doc, 'div', 'calendar-weekdays');
-      weekdays.forEach((label, index) => labels.append(create(doc, 'span', 'calendar-weekday' + (index > 4 ? ' calendar-weekend-' + index : ''), label)));
+      weekdays.forEach((label, index) => labels.append(create(doc, 'span', 'calendar-weekday' + (index > 4 ? ' calendar-weekend-' + index : ''), copy('calendar.weekday.'+index,label))));
       grid.append(labels);
       layout.weeks.forEach(week => {
         const row = create(doc, 'div', 'calendar-week');
@@ -189,7 +196,7 @@
             + (day.other ? ' calendar-day-other' : '') + (day.date === today ? ' calendar-day-today' : '')
             + (day.date === selected ? ' calendar-day-selected' : '') + (day.weekday > 4 ? ' calendar-weekend-' + day.weekday : ''));
           if (actionable) { date.type = 'button'; date.dataset.calendarDate = day.date; }
-          date.setAttribute('aria-label', `${day.date}${options.editable ? ' 새 일정 등록' : ' 일정 보기'}`);
+          date.setAttribute('aria-label', options.editable?day.date+' 새 일정 등록':copy('calendar.dayLabel','{date} 일정 보기',{date:day.date}));
           if (day.date === today) date.setAttribute('aria-current', 'date');
           date.append(create(doc, 'span', 'calendar-day-number', String(day.number)));
           if (options.editable) { const plus = create(doc, 'span', 'calendar-add', '+'); plus.setAttribute('aria-hidden', 'true'); date.append(plus); }
@@ -209,12 +216,12 @@
           button.style.setProperty('--calendar-event-bg', color);
           button.style.setProperty('--calendar-event-ink', inkColor(color));
           button.title = eventLabel(event);
-          button.setAttribute('aria-label', button.title + (options.editable ? ' 수정' : ' 상세 보기'));
-          if (event.highlight) { const star = create(doc, 'span', 'calendar-event-star', '✦'); star.setAttribute('aria-hidden', 'true'); button.append(star); }
+          button.setAttribute('aria-label', options.editable?button.title+' 수정':copy('calendar.eventAction','{event} 상세 보기',{event:button.title}));
+          if (event.highlight) { const star = create(doc, 'span', 'calendar-event-star', copy('calendar.highlightSymbol','✦')); star.setAttribute('aria-hidden', 'true'); button.append(star); }
           if (event.time) button.append(create(doc, 'span', 'calendar-event-time', event.time));
-          button.append(create(doc, 'span', 'calendar-event-title', event.title || event.type || '방송'));
+          button.append(create(doc, 'span', 'calendar-event-title', event.title || event.type || defaultType()));
           if (event.title2 || event.time2 || event.type2) {
-            const part = create(doc, 'span', 'calendar-event-part', '2부');
+            const part = create(doc, 'span', 'calendar-event-part', copy('calendar.part2Badge','2부'));
             part.style.setProperty('--calendar-part-bg', colorValue(event.color2, event.type2));
             part.style.setProperty('--calendar-part-ink', inkColor(colorValue(event.color2, event.type2)));
             button.append(part);
@@ -226,8 +233,8 @@
       shell.append(grid);
       const shown = layout.events.filter(event => event.start <= formatDate(utcDate(year, month + 1, 0)) && event.end >= formatDate(utcDate(year, month, 1))).length;
       shell.append(create(doc, 'p', 'calendar-hint', shown
-        ? options.editable ? '날짜를 누르면 새 일정, 일정 막대를 누르면 수정할 수 있어요.' : '일정 막대를 누르면 자세한 내용을 볼 수 있어요.'
-        : options.editable ? '이 달의 일정이 비어 있어요. 날짜를 눌러 일정을 등록해 주세요.' : '이 달의 일정은 아직 준비 중이에요.'));
+        ? options.editable ? '날짜를 누르면 새 일정, 일정 막대를 누르면 수정할 수 있어요.' : copy('calendar.hint','일정 막대를 누르면 자세한 내용을 볼 수 있어요.')
+        : options.editable ? '이 달의 일정이 비어 있어요. 날짜를 눌러 일정을 등록해 주세요.' : copy('calendar.empty','이 달의 일정은 아직 준비 중이에요.')));
       renderDetail();
     }
     function onClick(event) {
@@ -261,6 +268,7 @@
         detailSource = null; render();
       },
       goTo(date) { return moveTo(date); },
+      refreshCopy() { if(!destroyed)render(); },
       destroy() {
         if (destroyed) return;
         destroyed = true; shell.removeEventListener('click', onClick); shell.remove();

@@ -15,11 +15,13 @@
     return node;
   }
   function icon(name) {
+    if(name==='mail')name='envelope';
+    name=name.replace(/^i-/,'');
     const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.setAttribute('class','icon');svg.setAttribute('aria-hidden','true');
+    svg.dataset.yArt='shell.art.'+name;
     const paths={search:'M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16M16 16l6 6',expand:'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5'};
     if(paths[name]){svg.setAttribute('viewBox','0 0 24 24');const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',paths[name]);svg.append(path);return svg;}
-    if(name==='mail')name='envelope';
     const use=document.createElementNS(svg.namespaceURI,'use');use.setAttribute('href','#i-'+name.replace(/^i-/,''));svg.append(use);return svg;
   }
   function safeUrl(value,options={}) {
@@ -37,7 +39,7 @@
   let serial=0;
   function dialog(title,content) {
     const opener=document.activeElement, id='ym-dialog-'+(++serial);
-    const close=el('button',{class:'ym-close',type:'button','aria-label':'닫기'},[icon('close')]);
+    const close=el('button',{class:'ym-close',type:'button','aria-label':window.YamhaContent?.text('shared.dialogClose')||'닫기',dataset:{yAttr:'aria-label:shared.dialogClose'}},[icon('close')]);
     const box=el('dialog',{class:'ym-dialog','aria-labelledby':id},[
       el('div',{class:'ym-dialog-head'},[el('h2',{id},title),close]),el('div',{class:'ym-dialog-content'},content)
     ]);
