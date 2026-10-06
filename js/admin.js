@@ -6,6 +6,25 @@
   const tabNames = {common:'공통', home:'메인', profile:'프로필', schedule:'일정', news:'공지', store:'STORE', reward:'REWARD', debt:'업보', guide:'안내'};
   const pageCollections = {profile:['timeline'],schedule:['schedule'],news:['news'],reward:['rewards','photos'],debt:['debts'],guide:['guides']};
   const pagePaths = {common:'index.html',home:'index.html',profile:'profile/index.html',schedule:'schedule/index.html',news:'news/index.html',store:'store/index.html',reward:'reward/index.html',debt:'debt/index.html',guide:'guide/index.html'};
+  const pageHelp = {
+    common:'모든 페이지에서 함께 쓰는 이름, 왼쪽 프로필 사진, 채널 주소를 바꿉니다.',
+    home:'메인에 보이는 소개와 사진을 바꿉니다. 사진 아래 문구와 장식은 아래의 세부 편집에서 바꿀 수 있습니다.',
+    profile:'프로필의 정보, 소개, 취향을 바꿉니다. 이름·팬 이름·방송 시간은 메인에도 함께 반영됩니다.',
+    schedule:'달력 날짜를 누르면 새 일정, 등록된 일정 막대를 누르면 수정 화면이 열립니다.',
+    news:'공지를 등록하거나 기존 글을 수정합니다. 공지·콘텐츠·이벤트·굿즈 분류를 선택할 수 있습니다.',
+    store:'스토어 버튼을 눌렀을 때 열릴 주소를 바꿉니다. 나중에 다른 스토어로 옮겨도 여기서 수정하면 됩니다.',
+    reward:'구독 리워드와 개인 방셀을 등록합니다. 리워드별로 구독 티어와 필요한 개월 수를 정할 수 있습니다.',
+    debt:'닉네임별 업보 이름, 남은 수량과 완료 상태를 관리합니다.',
+    guide:'방송 채팅·팬카페·2차 창작 안내 3종의 본문과 사진을 수정합니다.'
+  };
+  // The source GROUPS cards state where a value appears before showing inputs.
+  const collectionGroups = {
+    news:[['공지 내용','나오는 곳 — 공지 목록의 제목과, 글을 눌렀을 때 나오는 본문입니다.',['title','body','images']],['분류·공개 설정','굿즈를 선택하면 굿즈 탭에 표시됩니다. 공개를 끄면 방문자 목록에서 숨겨집니다.',['category','published_at','pinned','published']]],
+    rewards:[['리워드 내용','나오는 곳 — REWARD의 구독 리워드 목록과 상세 안내입니다.',['title','description']],['수령 조건','예: 3개월로 설정하면 해당 티어·개월 수 이상인 구독자가 원본을 받을 수 있습니다. 미리보기는 공개됩니다.',['tier','required_months']],['미리보기·원본','미리보기에는 공개해도 되는 사진을 넣고, 실제 제공할 사진은 비공개 원본으로 업로드하세요.',['preview_url','private_asset_path']],['공개·정렬','표시 순서는 작은 숫자가 먼저입니다. 공개를 끄면 리워드 목록에서 숨겨집니다.',['sort_order','published']]],
+    photos:[['방셀 정보','나오는 곳 — 받는 분이 로그인한 뒤 보는 방셀 보관함입니다. 제목과 태그로 찾을 수 있습니다.',['title','tags','published_at']],['받는 분·사진','받는 분의 치지직 채널 ID를 확인한 뒤 원본을 업로드합니다. 닉네임으로는 소유자를 지정할 수 없습니다.',['recipient_channel_id','preview_url','private_asset_path']]],
+    guides:[['안내 종류·제목','나오는 곳 — 안내 페이지의 3개 버튼입니다. 기존 안내의 종류는 바꾸지 않고 제목과 본문을 수정합니다.',['id','title','sort_order']],['안내 본문·사진','본문의 ## 제목과 줄바꿈이 반영됩니다. 2차 창작 사진은 아래에 적힌 순서를 유지해 주세요.',['body','images']]],
+    schedule:[['1부·기간','나오는 곳 — 메인과 일정 페이지의 달력입니다. 하루 일정은 종료 날짜를 비워 둡니다.',['date','end_date','title','time','type','color','highlight']],['2부·메모','2부가 없으면 2부 유형을 ‘2부 없음’으로 둡니다. 설명은 일정 상세에서 확인할 수 있습니다.',['title2','time2','type2','color2','description']]]
+  };
   const colors = ['pink', 'green', 'lime', 'blue', 'yellow', 'orange', 'purple', 'red', 'gray', 'cream'];
   const configs = {
     schedule: {
@@ -28,7 +47,7 @@
         {key:'published_at',label:'표시 날짜 · 한국 시간',type:'datetime-local',required:true}, {key:'body',label:'공지 내용',type:'textarea',required:true,wide:true,rows:8},
         {key:'images',label:'이미지 주소',type:'images',wide:true,hint:'한 줄에 이미지 주소 하나씩 입력해 주세요.'},
         {key:'pinned',label:'상단에 고정',type:'checkbox'}, {key:'published',label:'공개 목록에 표시',type:'checkbox'}],
-      title:row=>row.title, meta:row=>[row.category, row.pinned?'상단 고정':'',row.published===false?'비공개':'공개',displayDate(row.published_at)].filter(Boolean).join(' · ')
+      title:row=>row.title, meta:row=>[({NOTICE:'공지',CONTENTS:'콘텐츠',EVENT:'이벤트',GOODS:'굿즈'})[row.category]||row.category, row.pinned?'상단 고정':'',row.published===false?'비공개':'공개',displayDate(row.published_at)].filter(Boolean).join(' · ')
     },
     rewards: {
       singular:'리워드', description:'1티어·2티어 혜택과 필요한 구독 개월 수를 편집해요.',
@@ -79,6 +98,7 @@
   let S, UI, C, host, pane, status, tabBar, backupPanel, collectionHost;
   let active = 'home', activeCollection='', editor = null, calendar = null, currentRows = [], operation = false, loadVersion = 0;
   const editors=new Set();
+  const cardEditors=new WeakMap();
   let authVersion=0, backupVersion=0, unlocked=false, identity='', activating=false, signingOut=false;
   const E = (tag, cls, text) => { const node=document.createElement(tag); if(cls)node.className=cls; if(text!==undefined)node.textContent=text; return node; };
   const button = (label, cls, handler) => { const node=E('button',cls,label);node.type='button';if(handler)node.addEventListener('click',handler);return node; };
@@ -107,17 +127,24 @@
     if(status) status.textContent = operation || saving() ? '저장 결과를 확인하고 있어요…' : dirty() ? '● 저장하지 않은 변경이 있어요' : '서버에 저장된 내용을 편집 중이에요';
     status?.classList.toggle('adm-status-dirty',dirty());
   }
-  function canLeave() {
+  function canLeave(states) {
     if(!requireAccess())return false;
     if(operation || saving()) { UI.toast('저장 결과를 확인한 뒤 다시 눌러 주세요.'); return false; }
-    return !dirty() || window.confirm('저장하지 않은 변경이 있어요. 변경을 버리고 이동할까요?');
+    const changed=states?states.filter(Boolean).some(state=>state.form.isConnected&&state.initial!==formSnapshot(state.form)):dirty();
+    return !changed || window.confirm('저장하지 않은 변경이 있어요. 변경을 버리고 이동할까요?');
   }
   function safeURL(value,image) { return value ? UI.safeUrl(String(value).trim(),{image:!!image}) : null; }
   function resolveImage(value) { return safeURL(value,true); }
+  function revealField(node) {
+    for(let parent=node;parent&&parent!==pane;parent=parent.parentElement){
+      if(parent.hidden)parent.hidden=false;
+      if(parent.tagName==='DETAILS')parent.open=true;
+    }
+  }
   function markError(message, node, state) {
     state=state || liveEditors().find(item=>node && item.form.contains(node)) || editor;
     if(state) { state.error.textContent=message;state.error.hidden=false; }
-    if(node)node.focus();
+    if(node){revealField(node);node.focus();}
   }
   function errorText(error) {
     return error?.message || S.storageError() || '서버에 저장하지 못했어요. 입력 내용은 그대로 남겨 두었어요. 연결 상태와 관리자 권한을 확인해 주세요.';
@@ -174,7 +201,7 @@
       input.setAttribute('list',list.id);wrapper.append(list);
     }
     if(spec.type==='checkbox'){label.prepend(input);wrapper.append(label);} else wrapper.append(label,input);
-    let hint=spec.hint || (spec.type==='colorname'?'pink / green / blue 또는 #색상코드':'');
+    let hint=spec.hint || (spec.type==='colorname'?'pink / green / blue 또는 #색상코드':spec.type==='tags'?'한 줄에 하나씩 적거나 쉼표로 구분하세요.':spec.type==='image'?'이미지 주소 또는 assets/로 시작하는 파일 경로를 입력하세요. 아래에서 사진을 확인할 수 있습니다.':'');
     if(hint){const note=E('small','adm-field-hint',hint);note.id=id+'-hint';input.setAttribute('aria-describedby',note.id);wrapper.append(note);}
     if(spec.type==='image' || spec.type==='images')addPreview(input,wrapper,spec.type==='images');
     if(spec.type==='private') {
@@ -231,6 +258,8 @@
     return value;
   }
   function validateFields(form,fields,state) {
+    const invalid=[...form.elements].find(input=>input.willValidate && !input.validity.valid);
+    if(invalid){revealField(invalid);form.reportValidity();return false;}
     if(!form.reportValidity())return false;
     for(const spec of fields) {
       const input=form.elements.namedItem(spec.key),value=input.value.trim();
@@ -248,7 +277,8 @@
   function createEditor(title,fields,row,submit,settings) {
     settings=settings || {};
     const card=E('section','adm-editor');
-    const head=E('div','adm-editor-heading');head.append(E('span','adm-kicker',settings.existing?'EDIT LETTER':'NEW LETTER'),E('h2','adm-section-title',title));card.append(head);
+    const head=E('div','adm-editor-heading');head.append(E('h2','adm-section-title',title));
+    if(settings.note)head.append(E('p','adm-card-note',settings.note));card.append(head);
     const form=E('form','adm-form');form.noValidate=true;
     const fieldset=E('fieldset','adm-fields');
     const startValues={};
@@ -257,22 +287,30 @@
         const groupWrap=E(group.collapsed?'details':'section','adm-field-group');
         groupWrap.append(E(group.collapsed?'summary':'h3','adm-group-title',group.title));
         if(group.hint)groupWrap.append(E('p','adm-group-hint',group.hint));
-        const grid=E('div','adm-field-grid');group.fields.forEach(spec=>addField(form,grid,spec,spec.presentation?C.raw(spec.presentation):get(row,spec.key)));groupWrap.append(grid);fieldset.append(groupWrap);
+        const grid=E('div','adm-field-grid');group.fields.forEach(spec=>addField(form,grid,spec,spec.presentation?C.raw(spec.presentation):get(row,spec.key),settings.existing && spec.key==='id'));groupWrap.append(grid);fieldset.append(groupWrap);
       });
     } else {
-      const grid=E('div','adm-field-grid');fields.forEach(spec=>addField(form,grid,spec,row[spec.key],settings.existing && spec.key==='id'));fieldset.append(grid);
+      const grid=E('div','adm-field-grid');fields.forEach(spec=>addField(form,grid,spec,spec.presentation?C.raw(spec.presentation):get(row,spec.key),settings.existing && spec.key==='id'));fieldset.append(grid);
     }
     form.append(fieldset);
     const error=E('p','adm-error');error.setAttribute('role','alert');error.hidden=true;form.append(error);
     const actions=E('div','adm-form-actions');
     const save=button(settings.existing?'수정 저장':'등록하기','adm-button adm-button-primary');save.type='submit';
-    const cancel=button(settings.cancelLabel || '작성 취소','adm-button',()=>{if(canLeave())settings.cancel?.();});
-    actions.append(save,cancel);form.append(actions);card.append(form);
-    const state={form,fieldset,error,save,cancel,busy:false,row,fields,startValues,existing:!!settings.existing,initial:''};
+    const cancel=button(settings.cancelLabel || '작성 취소','adm-button',()=>{
+      if(settings.independent){
+        if(!requireAccess() || saving() || operation)return;
+        if(state.initial!==formSnapshot(form) && !window.confirm('이 카드에서 작성한 변경을 되돌릴까요?'))return;
+        settings.cancel?.();
+      }else if(canLeave([state]))settings.cancel?.();
+    });
+    const savedNote=E('span','adm-save-note',settings.existing?'변경 후 저장을 눌러 주세요.':'등록하기를 누르면 사이트에 반영됩니다.');savedNote.setAttribute('aria-live','polite');
+    actions.append(save,cancel,savedNote);form.append(actions);card.append(form);
+    const state={form,fieldset,error,save,cancel,savedNote,busy:false,row,fields,startValues,existing:!!settings.existing,initial:''};
     [...form.elements].filter(input=>input.name).forEach(input=>startValues[input.name]=input.type==='checkbox'?input.checked:input.value);
-    state.initial=formSnapshot(form);editor=state;for(const old of editors)if(!old.form.isConnected)editors.delete(old);editors.add(state);
-    form.addEventListener('input',updateStatus);form.addEventListener('change',updateStatus);
-    form.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();if(canLeave())settings.cancel?.();}});
+    state.initial=formSnapshot(form);cardEditors.set(card,state);for(const old of editors)if(!old.form.isConnected)editors.delete(old);editors.add(state);
+    const changed=()=>{savedNote.textContent=state.initial!==formSnapshot(form)?'저장하지 않은 변경이 있습니다.':'변경 후 저장을 눌러 주세요.';updateStatus();};
+    form.addEventListener('input',changed);form.addEventListener('change',changed);
+    form.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();cancel.click();}});
     form.addEventListener('submit',async event=>{
       event.preventDefault();if(!requireAccess() || !state.form.isConnected || saving() || operation)return;
       error.hidden=true;error.textContent='';
@@ -307,38 +345,42 @@
   }
   function profileGroups(profile,page) {
     const groups=[];
-    if(page==='common')groups.push({title:'사이트 공통 정보',hint:'왼쪽 로고와 여러 페이지에서 함께 사용하는 정보예요.',fields:[
+    if(page==='common')groups.push({title:'사이트 공통 정보',hint:'나오는 곳 — 모든 페이지 왼쪽 위 프로필 사진과 이름. 이름과 팬 이름을 바꾸면 연결된 문구에도 함께 반영됩니다.',fields:[
       {key:'brandImage',label:'왼쪽 위 프로필 사진',type:'image',wide:true},
       {key:'name',label:'활동 이름'},{key:'englishName',label:'영문 이름'},{key:'fanName',label:'팬 이름'}]},
-      {title:'공통 채널 주소',fields:[['channel','방송 채널'],['cafe','팬카페'],['youtube','YouTube'],['x','X']].map(([key,label])=>({key:'links.'+key,label:label+' 주소',type:'url',wide:true}))});
-    if(page==='home')groups.push({title:'메인 기본 정보',hint:'다른 페이지에도 사용하는 이름·소개·방송 안내는 같은 값으로 함께 바뀌어요.',fields:[
+      {title:'공통 채널 주소',hint:'나오는 곳 — 메인 바로가기와 페이지 아래의 외부 채널 링크. 전체 주소를 입력한 뒤 ‘주소 열어 보기’로 확인하세요.',fields:[['channel','방송 채널'],['cafe','팬카페'],['youtube','YouTube'],['x','X']].map(([key,label])=>({key:'links.'+key,label:label+' 주소',type:'url',wide:true}))});
+    if(page==='home')groups.push({title:'이름·소개·방송 안내',hint:'나오는 곳 — 메인 이름과 소개, 방송 시간 안내. 같은 정보를 쓰는 프로필에도 함께 반영됩니다.',fields:[
       {key:'name',label:'활동 이름'},{key:'englishName',label:'영문 이름'},{key:'fanName',label:'팬 이름'},
       {key:'bio',label:'한 줄 소개',wide:true},{key:'broadcast.time',label:'방송 시간'},{key:'broadcast.restDays',label:'정기 휴방'},
       {key:'links.channel',label:'방송 채널 주소',type:'url',wide:true}]},
-      {title:'메인 사진 5장',hint:'메인 콜라주 사진을 바꿔요. 설명은 사진 확대와 접근성 안내에 쓰입니다.',fields:Array.from({length:5},(_,index)=>[
-      {key:`photos.${index}.src`,label:`사진 ${index+1} 이미지 주소`,type:'image',wide:true},
-      {key:`photos.${index}.alt`,label:`사진 ${index+1} 설명`,wide:true}
-    ]).flat()});
-    if(page==='profile')groups.push({title:'프로필 사진과 기본 정보',fields:[
+      ...Array.from({length:5},(_,index)=>({title:`메인 사진 ${index+1}`,hint:`나오는 곳 — 메인 콜라주의 ${index+1}번 사진. 아래 미리보기로 사진을 확인하고 저장하세요. 설명은 사진 확대와 화면 읽기 안내에 사용됩니다.`,fields:[
+        {key:`photos.${index}.src`,label:'사진 이미지 주소',type:'image',wide:true},
+        {key:`photos.${index}.alt`,label:'사진 설명',wide:true}
+      ]})));
+    if(page==='profile')groups.push({title:'프로필 사진·소개',hint:'나오는 곳 — 프로필 맨 위 사진과 이름, 소개. 사진은 메인 사진과 별도로 바꿀 수 있습니다.',fields:[
       {key:'profileImage',label:'프로필 페이지 사진',type:'image',wide:true,hint:'메인 사진과 별도로 바꿀 수 있어요.'},
       {key:'name',label:'활동 이름',hint:'메인·공통 이름과 같은 값이에요.'},{key:'englishName',label:'영문 이름'},
-      {key:'bio',label:'한 줄 소개',wide:true},{key:'intro',label:'자세한 소개',type:'textarea',wide:true},
+      {key:'bio',label:'한 줄 소개',wide:true},{key:'intro',label:'자세한 소개',type:'textarea',wide:true,hint:'줄바꿈이 그대로 반영됩니다.'}]},
+      {title:'프로필 기본 정보',hint:'나오는 곳 — 프로필 사진 옆의 생일·데뷔·팬네임·소속·MBTI·나이 표입니다.',fields:[
       {key:'fanName',label:'팬 이름'},{key:'birthday',label:'생일',placeholder:'04.06'},{key:'debutDate',label:'데뷔 날짜',type:'date'},
-      {key:'agency',label:'소속'},{key:'mbti',label:'MBTI'},{key:'age',label:'나이',placeholder:'21세'},
-      {key:'personality',label:'성격'},{key:'catchphrase',label:'말버릇'}]},
-      {title:'방송과 취향',fields:[{key:'broadcast.categories',label:'주요 콘텐츠',type:'tags'},{key:'interests',label:'좋아하는 것',type:'tags'},
-      {key:'dislikes',label:'싫어하는 것',type:'tags'},{key:'keywords',label:'방송 키워드',type:'tags',hint:'쉼표 또는 줄바꿈으로 구분해 주세요. 화면에는 #이 붙어 표시돼요.'},
-      {key:'genres',label:'노래 장르',type:'tags'},{key:'signatureSong',label:'대표곡'}]});
-    if(page==='schedule'||page==='profile')groups.push({title:'방송 시간 안내',hint:'메인과 프로필·일정에 함께 표시되는 같은 값이에요.',fields:[{key:'broadcast.time',label:'방송 시간'},{key:'broadcast.restDays',label:'정기 휴방'}]},
-      {title:'요일별 방송 안내',fields:['월','화','수','목','금','토','일'].map((day,index)=>({key:`broadcast.week.${index}`,label:day+'요일',placeholder:'오전 / 오후 8시 / 휴방'}))});
-    if(page==='store')groups.push({title:'STORE 바로가기',fields:[{key:'links.store',label:'굿즈 스토어 주소',type:'url',wide:true,hint:'비우면 스토어 준비 중 화면이 나와요.'}]});
-    if(page==='profile')groups.push({title:'노래책 바로가기',fields:[{key:'links.songbook',label:'외부 노래책 주소',type:'url',wide:true}]});
+      {key:'agency',label:'소속'},{key:'mbti',label:'MBTI'},{key:'age',label:'나이',placeholder:'21세'}]},
+      {title:'성격·말버릇·취향',hint:'나오는 곳 — 프로필의 성격·말버릇, 좋아하는 것·싫어하는 것 카드입니다.',fields:[
+        {key:'personality',label:'성격'},{key:'catchphrase',label:'말버릇'},
+        {key:'interests',label:'좋아하는 것',type:'tags'},{key:'dislikes',label:'싫어하는 것',type:'tags'}]},
+      {title:'방송 콘텐츠·키워드',hint:'나오는 곳 — 프로필 소개 아래 콘텐츠 표기와, 오전 방송 카드의 #키워드입니다.',fields:[
+        {key:'broadcast.categories',label:'주요 콘텐츠',type:'tags'},{key:'keywords',label:'방송 키워드',type:'tags',hint:'한 줄에 하나씩 적으세요. 화면에는 #이 자동으로 붙습니다.'}]},
+      {title:'얌하의 플레이리스트',hint:'나오는 곳 — 프로필의 플레이리스트 카드. 외부 노래책 버튼을 누르면 아래 주소가 새 창으로 열립니다.',fields:[
+        {key:'genres',label:'노래 장르',type:'tags'},{key:'signatureSong',label:'대표곡'},{key:'links.songbook',label:'외부 노래책 주소',type:'url',wide:true}]});
+    if(page==='schedule'||page==='profile')groups.push({title:'방송 시간 안내',hint:'나오는 곳 — 메인·프로필·일정에서 사용하는 방송 시간과 정기 휴방 안내입니다.',fields:[{key:'broadcast.time',label:'방송 시간'},{key:'broadcast.restDays',label:'정기 휴방'}]},
+      {title:'요일별 방송 안내',hint:'나오는 곳 — 프로필의 요일별 안내입니다. 개별 날짜 일정은 일정 탭의 달력에서 등록하세요.',fields:['월','화','수','목','금','토','일'].map((day,index)=>({key:`broadcast.week.${index}`,label:day+'요일',placeholder:'오전 / 오후 8시 / 휴방'}))});
+    if(page==='store')groups.push({title:'STORE 바로가기',hint:'나오는 곳 — 왼쪽 STORE 메뉴와 스토어 페이지의 바로가기 버튼입니다.',fields:[{key:'links.store',label:'굿즈 스토어 주소',type:'url',wide:true,hint:'비우면 스토어 준비 중 화면이 나와요.'}]});
     const catalogue=C.entries().filter(entry=>cataloguePage(entry.key)===page);
     const sections=new Map();
     catalogue.forEach(entry=>{
       const accessible=/aria|accessible|alt$|dialogClose|imageAlt|navigationLabel/i.test(entry.key);
-      const group=accessible?'접근성 안내':entry.group || '페이지 문구와 이미지';
-      if(!sections.has(group))sections.set(group,{title:group,collapsed:accessible,fields:[]});
+      const statusText=/error|loading|empty|pending|failed|unavailable|setup|cancelled|expired|warning/i.test(entry.key);
+      const group=accessible?'화면 읽기 안내':entry.type==='image'?'사진·장식 이미지':entry.key.startsWith('heading.')?'페이지 제목·소개':statusText?'빈 화면·오류 안내 문구':entry.group || '페이지 문구';
+      if(!sections.has(group))sections.set(group,{title:group,presentation:true,hint:accessible?'화면 읽기 프로그램에서 사용하는 설명입니다.':entry.type==='image'?'나오는 곳 — 해당 페이지의 장식과 아이콘. 항목 아래의 빈 값 안내를 확인하세요.':statusText?'자료가 없거나 불러오는 중일 때, 오류가 발생했을 때 표시되는 안내입니다.':'나오는 곳 — 해당 페이지의 제목, 버튼, 설명. 중괄호 안 이름은 공통 정보로 자동 대체됩니다.',fields:[]});
       sections.get(group).fields.push({key:'presentation.'+entry.key,presentation:entry.key,defaultValue:entry.value,
         label:entry.label,type:entry.type==='image'?'image':entry.multiline?'textarea':'text',wide:entry.type==='image'||!!entry.multiline,
         hint:entry.hint || (entry.type==='image'?'빈 값은 이미지를 숨기고, 기본값 복원은 원래 이미지로 돌아가요.':String(entry.value??'').includes('{')?'중괄호 안 이름은 실제 정보로 바뀌는 자리예요. 그대로 두면 자동으로 반영돼요.':undefined)});
@@ -352,17 +394,18 @@
       target=target[part];
     });target[parts[parts.length-1]]=value;
   }
-  function renderPageSettings(page,target) {
+  function settingsProfile() {
     const profile=S.profile();
     profile.broadcast={...(profile.broadcast || {})};
     if(!Array.isArray(profile.broadcast.week))profile.broadcast.week=['오전','휴방','휴방','오전','오전','오전','오전'];
     if(profile.profileImage==null)profile.profileImage=profile.photos?.[0]?.src ?? '';
     if(profile.intro===undefined)profile.intro=C.text('profile.intro',{fanName:profile.fanName||C.text('profile.introAudience')});
-    const groups=profileGroups(profile,page),fields=groups.flatMap(group=>group.fields);
-    if(!fields.length)return;
-    let state;
-    const card=createEditor(tabNames[page]+' 화면 편집',fields,profile,async currentState=>{
-      const changes=collect(currentState,true);if(!Object.keys(changes).length){UI.toast('변경한 내용이 없어요.');return;}
+    return profile;
+  }
+  function renderSettingsCard(page,group,target) {
+    const profile=settingsProfile(),fields=group.fields;
+    const card=createEditor(group.title,fields,profile,async currentState=>{
+      const changes=collect(currentState,true);if(!Object.keys(changes).length){UI.toast('이 카드에서 변경한 내용이 없어요.');return;}
       const current=S.profile(),patch={};
       Object.entries(changes).forEach(([path,value])=>{
         if(path.startsWith('presentation.')){(patch.presentation ||= {})[path.slice(13)]=value;return;}
@@ -374,38 +417,92 @@
       try {
         await S.saveProfile(patch);if(!sessionCurrent(version)||!currentState.form.isConnected)return;
         [...currentState.form.elements].filter(input=>input.name).forEach(input=>{delete input.dataset.reset;currentState.startValues[input.name]=input.type==='checkbox'?input.checked:input.value;});
-        currentState.initial=formSnapshot(currentState.form);UI.toast(tabNames[page]+' 설정을 서버에 저장했어요.');
+        currentState.initial=formSnapshot(currentState.form);
+        currentState.savedNote.textContent='저장 완료 · 이 카드의 변경이 사이트에 반영됩니다.';
+        UI.toast(group.title+' 저장 완료');
       } catch(problem){if(sessionCurrent(version))markError(errorText(problem),null,currentState);else requireAccess();}
       finally{if(sessionCurrent(version))setBusy(currentState,false);}
-    },{groups,existing:true,cancelLabel:'변경 되돌리기',cancel:()=>{target.replaceChildren();renderPageSettings(page,target);updateStatus();}});
-    state=editor;state.saveLabel='화면 설정 저장';state.save.textContent=state.saveLabel;
-    const search=E('input','adm-input adm-search');search.type='search';search.placeholder='이 페이지의 편집 항목 검색';search.setAttribute('aria-label',search.placeholder);
-    search.addEventListener('input',()=>{
-      const query=search.value.trim().toLocaleLowerCase();
-      card.querySelectorAll('.adm-field-group').forEach(group=>{
-        let count=0;group.querySelectorAll('.adm-field').forEach(field=>{const match=!query||field.textContent.toLocaleLowerCase().includes(query)||field.querySelector('[name]')?.name.toLocaleLowerCase().includes(query);field.hidden=!match;if(match)count++;});
-        group.hidden=!count;if(query&&count&&group.tagName==='DETAILS')group.open=true;
+    },{existing:true,independent:true,note:group.hint,cancelLabel:'이 카드 되돌리기',cancel:()=>{target.replaceChildren();renderSettingsCard(page,group,target);updateStatus();}});
+    const state=cardEditors.get(card);state.saveLabel='이 카드 저장';state.save.textContent=state.saveLabel;
+    card.classList.add('adm-settings-card');card.dataset.settingsGroup=group.title;
+    target.append(card);
+  }
+  function renderPageSettings(page,target,advancedTarget) {
+    const groups=profileGroups(settingsProfile(),page);
+    const primary=groups.filter(group=>!group.presentation),advanced=groups.filter(group=>group.presentation);
+    primary.forEach(group=>{const slot=E('div','adm-settings-slot');target.append(slot);renderSettingsCard(page,group,slot);});
+    if(advanced.length){
+      const details=E('details','adm-details-editor');
+      const summary=E('summary','adm-details-summary');summary.append(E('span','','문구·사진 세부 편집'),E('small','','페이지 제목, 버튼 이름, 장식 이미지 변경'));
+      details.append(summary,E('p','adm-details-note','내용 등록과 별도로, 화면에 표시되는 글자와 장식을 바꾸는 곳입니다. 필요한 항목만 펼쳐 수정하세요. 각 카드의 저장 버튼은 해당 카드만 저장합니다.'));
+      details.append(E('p','adm-details-note','{name}은 활동 이름, {fanName}은 팬 이름처럼 실제 정보로 바뀝니다. ‘기본값 복원’을 누른 뒤 저장하면 원래 문구·사진으로 돌아갑니다.'));
+      advancedTarget.append(details);
+      advanced.forEach(group=>{
+        const fold=E('details','adm-copy-group'),summary=E('summary','adm-copy-summary',group.title+' · '+group.fields.length+'개');
+        const slot=E('div','adm-settings-slot');fold.append(summary,slot);details.append(fold);renderSettingsCard(page,group,slot);
       });
-    });
-    card.querySelector('.adm-editor-heading').append(search);target.append(card);
+    }
     updateStatus();
+  }
+  function addSettingsSearch(parent,targets) {
+    const bar=E('div','adm-settings-search'),label=E('label','adm-label','편집할 문구·사진 찾기');
+    const input=E('input','adm-input');input.type='search';input.id='adm-settings-search';input.placeholder='예: 팬 이름, 메인 사진, 리워드 페이지 제목';label.htmlFor=input.id;
+    const result=E('p','adm-field-hint','내용은 아래 카드에서 수정하고, 제목·장식은 ‘문구·사진 세부 편집’에서 찾을 수 있습니다.');result.setAttribute('aria-live','polite');
+    bar.append(label,input,result);parent.append(bar);
+    let previous=new Map();
+    input.addEventListener('input',()=>{
+      const query=input.value.trim().toLocaleLowerCase();
+      const cards=targets.flatMap(target=>[...target.querySelectorAll('.adm-settings-card')]);
+      const folds=targets.flatMap(target=>[...target.querySelectorAll('details')]);
+      if(query&&!previous.size)folds.forEach(fold=>previous.set(fold,fold.open));
+      let hits=0;
+      cards.forEach(card=>{
+        let count=0;const groupMatch=!!query&&card.dataset.settingsGroup.toLocaleLowerCase().includes(query);
+        card.querySelectorAll('.adm-field').forEach(field=>{
+          const control=field.querySelector('[name]');
+          const haystack=[field.textContent,control?.value,control?.name].join(' ').toLocaleLowerCase();
+          const match=!query||groupMatch||haystack.includes(query);field.hidden=!match;if(match){count++;hits++;}
+        });
+        card.closest('.adm-settings-slot').hidden=!count;
+      });
+      folds.slice().reverse().forEach(fold=>{
+        const visible=[...fold.querySelectorAll('.adm-settings-slot')].some(slot=>!slot.hidden);
+        fold.hidden=!visible;if(query&&visible)fold.open=true;
+        if(!query&&previous.has(fold))fold.open=previous.get(fold);
+      });
+      if(!query)previous.clear();
+      result.textContent=query?hits+'개 항목을 찾았습니다. 검색을 지우면 전체 항목이 다시 보입니다.':'내용은 아래 카드에서 수정하고, 제목·장식은 ‘문구·사진 세부 편집’에서 찾을 수 있습니다.';
+    });
+  }
+  function rewardConnectionCard() {
+    const card=E('section','adm-connection');
+    const text=E('div');text.append(E('h2','adm-section-title','치지직 방송인 연결'),E('p','adm-card-note','얌하 계정으로 한 번 연결하면 구독자의 티어와 개월 수를 확인할 수 있습니다. 아래 리워드 등록에서 수령 조건을 정하세요.'));
+    const error=E('p','adm-error');error.hidden=true;error.setAttribute('role','alert');
+    const connect=button('치지직 방송인 연결','adm-button adm-button-primary',async event=>{
+      if(!canLeave())return;const node=event.currentTarget,version=authVersion;operation=true;node.disabled=true;error.hidden=true;updateStatus();
+      try{if(!window.YamhaRewardAuth?.connectBroadcaster||!S.getAccessToken)throw new Error('치지직 연결 설정을 확인해 주세요.');await window.YamhaRewardAuth.connectBroadcaster(await S.getAccessToken());}
+      catch(problem){if(sessionCurrent(version)){error.textContent=errorText(problem);error.hidden=false;}else requireAccess();}
+      finally{if(sessionCurrent(version)){operation=false;node.disabled=false;updateStatus();}}
+    });
+    card.append(text,connect,error);return card;
   }
   async function renderPage(page) {
     pane.replaceChildren();collectionHost=null;activeCollection='';
-    const pageBar=E('div','adm-page-bar');pageBar.append(E('p','adm-panel-description',tabNames[page]+' 화면에 나오는 항목을 편집해요.'));
+    const pageBar=E('div','adm-page-bar');pageBar.append(E('p','adm-panel-description',pageHelp[page]));
     const view=E('a','adm-button adm-button-small','이 페이지 보기 ↗');view.href=S.url(pagePaths[page]);view.target='_blank';view.rel='noopener';pageBar.append(view);pane.append(pageBar);
-    if(page==='reward')pageBar.append(button('치지직 방송인 연결','adm-button adm-button-small',async event=>{
-      if(!canLeave())return;const node=event.currentTarget,version=authVersion;operation=true;node.disabled=true;updateStatus();
-      try{if(!window.YamhaRewardAuth?.connectBroadcaster||!S.getAccessToken)throw new Error('치지직 연결 설정을 확인해 주세요.');await window.YamhaRewardAuth.connectBroadcaster(await S.getAccessToken());}
-      catch(problem){if(sessionCurrent(version))UI.toast(errorText(problem));else requireAccess();}
-      finally{if(sessionCurrent(version)){operation=false;node.disabled=false;updateStatus();}}
-    }));
-    const settings=E('div','adm-page-settings');pane.append(settings);renderPageSettings(page,settings);
-    const names=pageCollections[page] || [];if(!names.length)return;
-    const section=E('section','adm-page-collections'),tabs=E('div','adm-subtabs');tabs.setAttribute('aria-label',tabNames[page]+' 목록 관리');
-    names.forEach(name=>{const tab=button(configs[name].singular+' 목록','adm-button',()=>{if(name!==activeCollection&&canLeave())loadCollection(name);});tab.dataset.collection=name;tabs.append(tab);});
-    section.append(E('h2','adm-group-title','목록 관리'),tabs);collectionHost=E('div','adm-collection-host');section.append(collectionHost);pane.append(section);
-    await loadCollection(names[0]);
+    const primary=E('div','adm-page-settings'),advanced=E('div','adm-page-settings adm-advanced-settings');
+    const searchHost=E('div','adm-search-host');pane.append(searchHost);
+    const names=pageCollections[page] || [];
+    if(page==='reward')pane.append(rewardConnectionCard());
+    if(page==='profile'||!names.length)pane.append(primary);
+    if(names.length){
+      const section=E('section','adm-page-collections'),tabs=E('div','adm-subtabs');tabs.setAttribute('aria-label',tabNames[page]+' 목록 관리');
+      names.forEach(name=>{const tab=button(configs[name].singular+' 관리','adm-button',()=>{if(name!==activeCollection&&canLeave([editor]))loadCollection(name);});tab.dataset.collection=name;tabs.append(tab);});
+      section.append(tabs);collectionHost=E('div','adm-collection-host');section.append(collectionHost);pane.append(section);
+    }
+    if(page!=='profile'&&names.length)pane.append(primary);
+    pane.append(advanced);renderPageSettings(page,primary,advanced);addSettingsSearch(searchHost,[primary,advanced]);
+    if(names.length)await loadCollection(names[0]);
   }
   async function loadCollection(name) {
     const version=++loadVersion,session=authVersion;
@@ -431,7 +528,7 @@
       const query=search.value.trim().toLocaleLowerCase();
       const filtered=sortRows(name,rows).filter(row=>[config.title(row),config.meta(row),row.body,row.description,row.note].filter(Boolean).join(' ').toLocaleLowerCase().includes(query));
       list.replaceChildren();
-      if(!filtered.length){list.append(E('p','adm-empty',query?'검색 결과가 없어요.':'첫 '+config.singular+'을 등록해 주세요.'));return;}
+      if(!filtered.length){list.append(E('p','adm-empty',query?'검색 결과가 없어요.':'등록된 '+config.singular+' 항목이 없습니다. 새 항목을 등록해 주세요.'));return;}
       filtered.forEach(row=>{
         const card=E('article','adm-record'+(editor?.row?.id===row.id?' adm-record-editing':''));
         card.append(E('p','adm-record-meta',config.meta(row)),E('h3','adm-record-title',config.title(row) || '제목 없음'));
@@ -497,10 +594,13 @@
         if(!sessionCurrent(version))return;
         if(!Array.isArray(nextRows) || !nextRows.some(item=>String(item.id)===String(result.id)))throw new Error('Saved row was not found');
         const visibleDate=name==='schedule'?result.date:undefined;
-        renderCollection(name,nextRows,null,visibleDate);UI.toast(config.singular+'을 서버에 저장했어요.');
+        renderCollection(name,nextRows,null,visibleDate);UI.toast(config.singular+' 저장 완료');
       } catch(problem) {if(sessionCurrent(version) && state.form.isConnected)markError(saved?'서버에는 저장되었지만 목록에서 다시 확인하지 못했어요. 입력을 유지했으니 연결 상태를 확인해 주세요.':errorText(problem),null,state);else requireAccess();}
       finally {if(sessionCurrent(version))setBusy(state,false);}
-    },{existing:!!row,cancel:()=>{const complete=name==='guides' && ['chat','fan','creation'].every(id=>currentRows.some(item=>item.id===id));buildCollectionEditor(name,complete?currentRows.find(item=>item.id==='chat'):null);refreshList(name);updateStatus();}});
+    },{existing:!!row,note:row?'수정 중인 항목: '+(config.title(row)||config.singular)+'. 수정 저장을 눌러야 사이트에 반영됩니다.':'새 '+config.singular+' 등록 화면입니다. 입력 후 등록하기를 눌러 주세요.',
+      groups:collectionGroups[name]?.map(([title,hint,keys])=>({title,hint,fields:keys.map(key=>config.fields.find(field=>field.key===key))})),
+      cancel:()=>{const complete=name==='guides' && ['chat','fan','creation'].every(id=>currentRows.some(item=>item.id===id));buildCollectionEditor(name,complete?currentRows.find(item=>item.id==='chat'):null);refreshList(name);updateStatus();}});
+    editor=cardEditors.get(card);
     document.getElementById('adm-editor-host').replaceChildren(card);
     if(name==='schedule') {
       const start=editor.form.elements.namedItem('date'),end=editor.form.elements.namedItem('end_date');
@@ -512,14 +612,14 @@
     const list=collectionHost.querySelector('.adm-records');if(list)list.replaceWith(listPanel(name,currentRows));
   }
   function openEditor(name,row,date) {
-    if(!canLeave())return;
+    if(!canLeave([editor]))return;
     buildCollectionEditor(name,row,date);refreshList(name);updateStatus();
     const first=editor.form.querySelector('input:not([disabled]),select:not([disabled]),textarea');
     document.getElementById('adm-editor-host').scrollIntoView({block:'start',behavior:'auto'});
     first?.focus({preventScroll:true});
   }
   async function deleteRow(name,row) {
-    if(!canLeave())return;
+    if(!canLeave([editor]))return;
     if(!window.confirm('“'+(configs[name].title(row) || configs[name].singular)+'”을 삭제할까요?'+(name==='schedule' && row.end_date?' 기간 전체가 삭제돼요.':'')))return;
     const version=authVersion;operation=true;updateStatus();
     try {
@@ -647,7 +747,7 @@
     const links=E('div','adm-header-actions');
     const view=E('a','adm-button adm-view-link','사이트 보기 ↗');view.href=S.url('index.html');view.target='_blank';view.rel='noopener';
     links.append(view,button('로그아웃','adm-button',logout));top.append(title,links);host.append(top);
-    const note=E('aside','adm-server-note');note.append(E('strong','','서버에 저장한 내용이 사이트에 반영돼요.'),E('p','','관리자 계정으로 로그인한 상태에서만 저장·삭제·백업 복원을 할 수 있어요.'));
+    const note=E('aside','adm-server-note');note.append(E('strong','','페이지 선택 → 내용 수정 → 해당 카드 저장'),E('p','','각 카드의 저장 버튼은 그 카드만 저장합니다. 공지·일정·리워드는 등록·수정 저장 후 목록에서 확인하세요.'));
     const account=E('p','adm-account',S.authState()?.user?.email || '관리자');note.append(account);host.append(note);
     const utility=E('div','adm-utility');status=E('p','adm-status');status.setAttribute('aria-live','polite');
     const backupActions=E('div','adm-backup-actions');const importInput=E('input');importInput.type='file';importInput.accept='.json,application/json';importInput.hidden=true;

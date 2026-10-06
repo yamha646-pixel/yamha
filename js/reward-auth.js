@@ -5,7 +5,21 @@
   const listeners=new Set();
   let current={configured:false,user:null,loading:true},epoch=0;
   const publish=()=>listeners.forEach(fn=>fn({...current}));
-  function failure(code){const error=new Error(code);error.code=code;return error;}
+  const errorMessages={
+    admin_required:'관리자 로그인이 필요해요. 다시 로그인한 뒤 연결해 주세요.',
+    admin_forbidden:'이 계정에는 관리자 권한이 없어요. 지정된 관리자 계정으로 로그인해 주세요.',
+    admin_auth_failed:'서버에서 관리자 로그인을 확인하지 못했어요. 다시 로그인해도 계속되면 Cloudflare의 Supabase 연결 설정을 확인해 주세요.',
+    admin_check_failed:'서버에서 관리자 권한을 조회하지 못했어요. Supabase 연결 설정과 관리자 권한 함수를 확인해 주세요.',
+    setup_required:'치지직 연결 설정이 아직 완료되지 않았어요. Cloudflare 환경변수와 재배포 상태를 확인해 주세요.',
+    storage_unavailable:'저장 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.',
+    service_unavailable:'연결 서버에 응답이 없어요. 잠시 후 다시 시도해 주세요.',
+    wrong_origin:'현재 접속 주소와 연결 설정의 사이트 주소가 달라요. 등록된 사이트에서 다시 시도해 주세요.',
+    csrf_rejected:'요청을 확인하지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.',
+    upload_rejected:'이미지 파일을 확인해 주세요. PNG, JPG, WebP, GIF 형식을 사용할 수 있어요.',
+    file_unavailable:'파일을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+    session_changed:'로그인 상태가 바뀌었어요. 다시 시도해 주세요.'
+  };
+  function failure(code){const error=new Error(errorMessages[code]||'요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.');error.code=code;return error;}
   async function call(path,init){
     let response;try{response=await fetch(base+path,{credentials:'same-origin',cache:'no-store',...init});}catch{throw failure('service_unavailable');}
     let data;try{data=await response.json();}catch{throw failure('setup_required');}

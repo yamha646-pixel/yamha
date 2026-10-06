@@ -33,7 +33,9 @@ function origin(request, cfg) {
 }
 async function requestJson(url, init = {}, errorCode = 'upstream_unavailable') {
   let response;
-  try { response = await fetch(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(15000) }); } catch { throw new Failure(errorCode); }
+  // Workers supports manual/follow, not redirect:'error'. Never forward credentials to a redirect.
+  try { response = await fetch(url, { ...init, redirect: 'manual', signal: AbortSignal.timeout(15000) }); } catch { throw new Failure(errorCode); }
+  if (response.status >= 300 && response.status < 400) throw new Failure(errorCode);
   if (!response.ok) throw new Failure(errorCode, response.status === 401 || response.status === 403 ? 403 : 503);
   if (response.status === 204) return null;
   try { const text=await response.text();return text ? JSON.parse(text) : null; } catch { throw new Failure(errorCode); }
@@ -76,9 +78,10 @@ async function admin(request, cfg) {
   const authorization = request.headers.get('Authorization') || '';
   if (!/^Bearer [A-Za-z0-9_.-]+$/.test(authorization)) throw new Failure('admin_required', 401);
   const h = { apikey: cfg.SUPABASE_PUBLIC_KEY, Authorization: authorization, 'Content-Type': 'application/json' };
-  const user = await requestJson(cfg.db + '/auth/v1/user', { headers: h }, 'admin_required');
-  const allowed = await requestJson(cfg.db + '/rest/v1/rpc/yamha_is_admin', { method: 'POST', headers: h, body: '{}' }, 'admin_required');
-  if (!user?.id || allowed !== true) throw new Failure('admin_required', 403);
+  const user = await requestJson(cfg.db + '/auth/v1/user', { headers: h }, 'admin_auth_failed');
+  if (!user?.id) throw new Failure('admin_auth_failed', 403);
+  const allowed = await requestJson(cfg.db + '/rest/v1/rpc/yamha_is_admin', { method: 'POST', headers: h, body: '{}' }, 'admin_check_failed');
+  if (allowed !== true) throw new Failure('admin_forbidden', 403);
   return user.id;
 }
 async function session(request, cfg, required = true) {

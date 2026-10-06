@@ -137,3 +137,86 @@ body.admin-page .adm-root{max-width:none}
 .adm-private-upload{margin-top:9px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 @media(max-width:1000px){.adm-page-settings .adm-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.adm-page-settings .adm-field-wide{grid-column:span 2}}
 @media(max-width:600px){body.admin-page>.main{padding:20px 14px 45px}.adm-page-settings .adm-field-grid{grid-template-columns:1fr}.adm-page-settings .adm-field-wide{grid-column:auto}.adm-page-bar{align-items:flex-start;flex-direction:column}.adm-tabs{position:static}.adm-page-settings .adm-form-actions{bottom:5px}.adm-group-hint{margin-top:-10px}.adm-page-settings{margin-bottom:25px}}
+/* Editing cards follow the imported Dope/Hiruroong admin: destination notes,
+   content first, separate optional words, and an explicit save on each card. */
+body.admin-page>.main{width:min(1360px,100%);padding-top:28px}
+.adm-root{font-size:14px;line-height:1.75}
+.adm-subtitle,.adm-panel-description,.adm-status{color:#6c5762;font-size:14px}
+.adm-title{font-size:32px}
+.adm-server-note{display:flex;flex-wrap:wrap;column-gap:18px;row-gap:2px;padding:14px 18px}
+.adm-server-note strong{flex-basis:100%;font-size:15px}
+.adm-server-note p{margin:0}
+.adm-server-note .adm-account{margin-left:auto;font-size:12px}
+.adm-tabs{border-radius:10px;background:#fff;gap:3px}
+.adm-tab{color:#674e5b;font-weight:600;font-size:14px;border-radius:7px;min-width:82px}
+.adm-tab.is-active{color:#843354;background:#ffe1eb;box-shadow:inset 0 -2px #bc5f82}
+.adm-panel{padding-top:20px}
+.adm-page-bar{margin-bottom:16px}
+.adm-page-settings{margin:0 0 24px;display:grid;gap:18px}
+.adm-page-settings:empty{display:none}
+.adm-settings-slot{min-width:0}
+.adm-settings-slot[hidden],.adm-copy-group[hidden],.adm-details-editor[hidden]{display:none!important}
+.adm-editor{padding:23px 25px;border-radius:11px;background:#fff}
+.adm-editor-heading{margin-bottom:19px;padding-bottom:16px;border-bottom:1px solid #eadde2}
+.adm-section-title{font:700 21px/1.5 var(--body,Noto,sans-serif);color:#87415f;letter-spacing:-.035em}
+.adm-card-note{font-size:13px;line-height:1.85;margin:8px 0 0;color:#665460;word-break:keep-all}
+.adm-page-settings .adm-field-grid,.adm-field-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.adm-page-settings .adm-field-wide{grid-column:1/-1}
+.adm-label{font-size:14px;color:#53404c;margin-bottom:8px}
+.adm-input{min-height:44px;font-size:14px;line-height:1.7;border-color:#d4c3cc;border-radius:7px;color:#423640}
+textarea.adm-input{min-height:104px;line-height:1.8}
+.adm-input::placeholder{color:#897781}
+.adm-field-hint{font-size:12px;line-height:1.85;color:#77626e}
+.adm-preview-tile{width:118px;height:118px;border-radius:7px}
+.adm-form-actions,.adm-page-settings .adm-form-actions{position:static;margin-top:23px;padding:17px 0 0;border:0;border-top:1px solid #eadde2;border-radius:0;box-shadow:none;background:transparent;align-items:center}
+.adm-save-note{font-size:12px;color:#77626e;margin-left:auto}
+.adm-group-title{font:700 16px/1.6 var(--body,Noto,sans-serif);margin-bottom:14px;color:#52643b}
+.adm-group-hint{font-size:13px;line-height:1.85;color:#665460;margin:-5px 0 17px}
+.adm-field-group+.adm-field-group{margin-top:24px;padding-top:20px;border-top:1px solid #eadde2}
+.adm-settings-search{padding:15px 18px;margin-bottom:21px;border:1px solid #e1d3db;border-radius:10px;background:#fff}
+.adm-settings-search .adm-label{font-size:13px;margin:0 0 8px}
+.adm-settings-search .adm-input{max-width:660px}
+.adm-settings-search .adm-field-hint{margin:7px 0 0}
+.adm-details-editor{border:1px solid #d9cbd3;border-radius:10px;background:#fff;overflow:hidden}
+.adm-details-summary{padding:18px 22px;color:#6d4055;font-size:16px;font-weight:700;cursor:pointer;line-height:1.7}
+.adm-details-summary small{display:inline-block;margin-left:13px;font-size:12px;font-weight:400;color:#74606c}
+.adm-details-editor[open]>.adm-details-summary{border-bottom:1px solid #e5d9df;background:#fff8fa}
+.adm-details-note{margin:16px 22px 0;font-size:13px;line-height:1.9;color:#695462}
+.adm-copy-group{margin:16px 20px;border:1px solid #e4d9df;border-radius:8px;overflow:hidden}
+.adm-copy-summary{padding:13px 17px;color:#614b59;font-size:14px;font-weight:600;cursor:pointer}
+.adm-copy-group[open]>.adm-copy-summary{background:#faf5f7;border-bottom:1px solid #e4d9df}
+.adm-copy-group .adm-editor{border:0;border-radius:0;padding:20px}
+.adm-copy-group .adm-editor-heading{padding:0;border:0;margin:0 0 17px}
+.adm-copy-group .adm-editor-heading>.adm-section-title{display:none}
+.adm-copy-group .adm-editor-heading>.adm-card-note{margin:0}
+.adm-copy-group .adm-field-hint{font-size:12px}
+.adm-reset{color:#8e4365;font-size:12px}
+.adm-connection{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:20px 23px;margin:0 0 23px;border:1px solid #d1dfbf;border-radius:11px;background:#f7faef}
+.adm-connection .adm-section-title{color:#53643c;font-size:18px}
+.adm-connection .adm-card-note{max-width:790px;margin-top:5px}
+.adm-connection .adm-error{grid-column:1/-1;margin:0}
+.adm-page-collections{padding:0 0 25px;border:0;margin-bottom:24px}
+.adm-subtabs{margin-bottom:17px}
+.adm-subtabs .adm-button{font-size:15px;padding:9px 21px}
+.adm-records{padding:20px;border-radius:11px;background:#fffafb}
+.adm-record-title{font-size:15px;color:#4e3b47}
+.adm-record-meta,.adm-record-note{font-size:12px;color:#796571}
+.adm-record{border-radius:8px;background:#fff}
+.adm-list-heading .adm-section-title{font-size:19px}
+.adm-workspace{grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:20px}
+@media(max-width:1050px){.adm-workspace{grid-template-columns:1fr}.adm-record-list{max-height:450px}.adm-connection{grid-template-columns:1fr}.adm-connection>.adm-button{justify-self:start}.adm-save-note{width:100%;margin:2px 0 0}}
+@media(max-width:650px){
+  body.admin-page>.main{padding:19px 12px 45px}.adm-title{font-size:27px}
+  .adm-server-note{padding:12px 14px}.adm-server-note strong{font-size:13px}.adm-server-note p{font-size:12px}.adm-server-note .adm-account{margin-left:0;flex-basis:100%}
+  .adm-tab{font-size:13px;min-width:58px;flex:1 1 27%;padding:8px}
+  .adm-panel-description,.adm-status{font-size:13px}.adm-page-bar{gap:11px}
+  .adm-settings-search{padding:13px 14px}.adm-settings-search .adm-input{font-size:13px}
+  .adm-editor{padding:19px 16px}.adm-section-title{font-size:19px}
+  .adm-page-settings .adm-field-grid,.adm-field-grid{grid-template-columns:1fr;gap:19px}.adm-field-wide{grid-column:1/-1}
+  .adm-label{font-size:13px}.adm-input{font-size:16px}.adm-field-hint{font-size:12px}
+  .adm-card-note,.adm-group-hint{font-size:12px}.adm-group-title{font-size:15px}
+  .adm-details-summary{padding:15px;font-size:15px}.adm-details-summary small{display:block;margin:4px 0 0;font-size:12px}
+  .adm-details-note{margin:13px 15px 0;font-size:12px}.adm-copy-group{margin:14px 12px}.adm-copy-group .adm-editor{padding:16px 13px}.adm-copy-summary{padding:12px 14px;font-size:13px}
+  .adm-connection{padding:17px 16px;gap:14px}.adm-connection .adm-section-title{font-size:17px}
+  .adm-page-settings .adm-form-actions{bottom:auto}.adm-save-note{font-size:11px}
+}
